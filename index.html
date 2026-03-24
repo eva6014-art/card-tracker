@@ -2,109 +2,111 @@
 
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>💳 信用卡回饋追蹤</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet"/>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{background:#f0f4ff;font-family:'Noto Sans TC',sans-serif;-webkit-tap-highlight-color:transparent}
-    input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
-    input[type=date]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
-    input[type=color]{-webkit-appearance:none;border:none;padding:0;cursor:pointer;background:none;width:22px;height:22px;border-radius:50%}
-    input[type=color]::-webkit-color-swatch-wrapper{padding:0}
-    input[type=color]::-webkit-color-swatch{border:none;border-radius:50%}
-    ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#f0f4ff}::-webkit-scrollbar-thumb{background:#d0d8ff;border-radius:2px}
-    @keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes fade{from{opacity:0}to{opacity:1}}
-    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-    .up{animation:up .3s ease forwards}.fade{animation:fade .2s ease}
-    button{font-family:'Noto Sans TC',sans-serif;cursor:pointer}
-    input{font-family:'Noto Sans TC',sans-serif}
-    button:active{transform:scale(.97)}
-    #app{display:flex;justify-content:center;min-height:100vh}
-    #main{width:100%;max-width:480px;display:flex;flex-direction:column;min-height:100vh}
-    #header{background:linear-gradient(135deg,#7c6cfc,#38b6ff);padding:24px 20px 20px;position:relative;overflow:hidden}
-    #header::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.12);pointer-events:none}
-    .month-row{display:flex;align-items:center;gap:10px;margin-bottom:18px}
-    .mbtn{background:rgba(255,255,255,.2);border:none;color:white;width:30px;height:30px;border-radius:10px;font-size:18px;display:flex;align-items:center;justify-content:center}
-    #mlabel{font-size:15px;font-weight:700;color:white;flex:1}
-    .stats{display:flex}.stat{flex:1;text-align:center}
-    .sval{font-size:20px;font-weight:900;color:white;letter-spacing:-1px}
-    .slbl{font-size:10px;color:rgba(255,255,255,.7);margin-top:3px;letter-spacing:1px}
-    #sind{display:flex;justify-content:flex-end;margin-top:10px;min-height:16px;font-size:11px}
-    #nav{display:flex;background:white;border-bottom:1px solid #d0d8ff;position:sticky;top:0;z-index:50;box-shadow:0 2px 12px #7c6cfc18}
-    .nb{flex:1;padding:12px 0 10px;background:none;border:none;color:#8b93c8;display:flex;flex-direction:column;align-items:center;gap:3px;border-bottom:2.5px solid transparent;font-weight:400;transition:color .15s;font-size:10px}
-    .nb.on{color:#7c6cfc;border-bottom-color:#7c6cfc;font-weight:700}
-    .ni{font-size:18px;line-height:1}
-    #content{flex:1;padding:16px 14px 48px}
-    .sl{font-size:11px;font-weight:700;letter-spacing:2px;color:#8b93c8;text-transform:uppercase;margin-bottom:10px}
-    .sl.mt{margin-top:20px}
-    .cb{background:white;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 12px #7c6cfc18;border:1px solid #d0d8ff;opacity:0}
-    .ctop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
-    .cch{font-size:11px;color:#8b93c8;margin-top:6px}
-    .rw{position:relative}.rpct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
-    .rrow{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:12px}
-    .ramt{font-size:26px;font-weight:900}.rsub{font-size:11px;color:#8b93c8}
-    .rlbl{font-size:13px;font-weight:700;text-align:right}.rlbl2{font-size:11px;color:#8b93c8;margin-top:2px;text-align:right}
-    .pt{height:6px;background:#e8eeff;border-radius:3px;overflow:hidden;margin-bottom:10px}
-    .pf{height:100%;border-radius:3px;transition:width .6s ease}
-    .cf{display:flex;justify-content:space-between;font-size:11px;color:#8b93c8}
-    .badge{display:inline-flex;align-items:center;border-radius:20px;font-size:12px;font-weight:700;padding:4px 14px;border:1px solid}
-    .bsm{font-size:10px;padding:2px 8px}
-    .cgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-    .ccell{background:white;border-radius:14px;padding:14px 8px;text-align:center;box-shadow:0 2px 12px #7c6cfc18;border:1px solid #d0d8ff}
-    .fl{font-size:11px;color:#8b93c8;font-weight:600;letter-spacing:1px;display:block;margin-bottom:6px}
-    .fi{width:100%;background:white;border:1.5px solid #d0d8ff;border-radius:12px;padding:13px 14px;color:#1e1b4b;font-size:15px;outline:none}
-    .fi:focus{border-color:#7c6cfc;box-shadow:0 0 0 3px #7c6cfc22}
-    .cr{display:flex;flex-wrap:wrap;gap:6px}
-    .chip{padding:7px 14px;border-radius:20px;border:1.5px solid #d0d8ff;background:white;color:#4b5080;font-size:12px;font-weight:400;transition:all .15s}
-    .chip.on{background:#7c6cfc;border-color:#7c6cfc;color:white;font-weight:700;box-shadow:0 2px 8px #7c6cfc44}
-    .sbtn{background:linear-gradient(135deg,#7c6cfc,#38b6ff);border:none;color:white;border-radius:14px;padding:16px;font-size:15px;font-weight:800;width:100%;letter-spacing:2px;box-shadow:0 4px 20px #7c6cfc44}
-    .abtn{background:linear-gradient(135deg,#7c6cfc,#38b6ff);border:none;border-radius:10px;padding:8px 16px;color:white;font-size:12px;font-weight:700;box-shadow:0 2px 10px #7c6cfc44}
-    .csel{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-radius:14px;border:1.5px solid #d0d8ff;background:white;width:100%;text-align:left;transition:all .15s;box-shadow:0 2px 12px #7c6cfc18;margin-bottom:8px}
-    .ri{display:flex;align-items:center;gap:12px;background:white;border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:0 2px 12px #7c6cfc18;border-left:4px solid}
-    .rl{flex:1}.rm{display:flex;align-items:center;gap:8px;margin-bottom:4px}.rd{font-size:10px;color:#8b93c8;margin-left:auto}
-    .smb{border-radius:16px;padding:14px;margin-bottom:14px;border:1.5px solid}
-    .smo{margin-top:10px;border-top:1px solid #d0d8ff;padding-top:10px}
-    .mg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
-    .mc{text-align:center;background:#f0f4ff;border-radius:10px;padding:8px 4px}
-    .mi{font-size:11px;color:#8b93c8;line-height:1.9;margin-top:4px}
-    .cat-mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
-    .camc{background:white;border-radius:14px;padding:12px 8px;text-align:center;box-shadow:0 2px 12px #7c6cfc18;border:1px solid #d0d8ff}
-    .dcard{background:white;border-radius:14px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 12px #7c6cfc18;border:1px solid #d0d8ff;display:flex;justify-content:space-between;align-items:center}
-    .dbtn{width:100%;background:white;border-radius:14px;padding:14px;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px}
-    .ov{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:900;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}
-    .sh{background:#f0f4ff;border-radius:24px 24px 0 0;width:100%;max-width:480px;box-shadow:0 -8px 40px #7c6cfc22;border:1px solid #d0d8ff;max-height:92vh;display:flex;flex-direction:column}
-    .shd{display:flex;justify-content:center;padding:12px 0 4px}.shdb{width:36px;height:4px;border-radius:2px;background:#d0d8ff}
-    .shh{display:flex;justify-content:space-between;align-items:center;padding:8px 20px 14px;border-bottom:1px solid #d0d8ff}
-    .sht{font-size:17px;font-weight:800;color:#1e1b4b}
-    .shc{background:#e8eeff;border:none;color:#4b5080;width:28px;height:28px;border-radius:8px;font-size:16px}
-    .shb{flex:1;overflow-y:auto;padding:14px 16px 8px}
-    .shf{display:flex;gap:10px;padding:12px 16px 24px;border-top:1px solid #d0d8ff}
-    .sinp{width:100%;background:white;border:1.5px solid #d0d8ff;border-radius:10px;padding:11px 12px;color:#1e1b4b;font-size:14px;outline:none}
-    .sinp.err{border-color:#f43f5e}.ferr{font-size:11px;color:#f43f5e;margin-top:3px}
-    .hb{font-size:12px;color:#7c6cfc;background:#7c6cfc12;border:1px solid #7c6cfc30;border-radius:10px;padding:9px 14px;margin-bottom:10px}
-    .cancbtn{flex:1;background:#e8eeff;border:none;border-radius:12px;padding:14px 0;color:#4b5080;font-size:14px;font-weight:700}
-    .savbtn{flex:2;background:linear-gradient(135deg,#7c6cfc,#38b6ff);border:none;border-radius:12px;padding:14px 0;color:white;font-size:14px;font-weight:800;box-shadow:0 4px 16px #7c6cfc44}
-    .delbtn{background:white;border:1.5px solid rgba(244,63,94,.3);border-radius:12px;padding:12px 14px;color:#f43f5e;font-size:13px;font-weight:700}
-    .cdot{width:22px;height:22px;border-radius:50%;border:2.5px solid transparent}.cdot.sel{border-color:#333}
-    .emb{width:56px;height:52px;border-radius:12px;border:1.5px solid #d0d8ff;background:white;font-size:24px;display:flex;align-items:center;justify-content:center}
-    .emp{position:absolute;top:60px;left:0;background:white;border:1px solid #d0d8ff;border-radius:16px;padding:10px;z-index:20;width:240px;display:flex;flex-wrap:wrap;gap:4px;box-shadow:0 8px 32px rgba(0,0,0,.1)}
-    .emo{width:34px;height:34px;border-radius:8px;border:none;background:transparent;font-size:18px;cursor:pointer}.emo.sel{background:#e8eeff}
-    .conf{background:white;border-radius:20px;padding:28px;width:300px;box-shadow:0 8px 40px rgba(0,0,0,.12)}
-    .empty{text-align:center;color:#8b93c8;padding:60px 20px;line-height:2}
-    .gbtn{margin-top:16px;background:linear-gradient(135deg,#7c6cfc,#38b6ff);border:none;border-radius:12px;padding:10px 24px;color:white;font-size:13px;font-weight:700;box-shadow:0 4px 16px #7c6cfc44}
-    #toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 24px;border-radius:24px;font-size:13px;font-weight:700;color:white;z-index:3000;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.15);display:none;animation:up .2s ease}
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="theme-color" content="#7c6cfc"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>💳 信用卡回饋追蹤</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#f0f4ff;font-family:'Noto Sans TC',sans-serif;-webkit-tap-highlight-color:transparent}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+input[type=date]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
+input[type=color]{-webkit-appearance:none;border:none;padding:0;cursor:pointer;background:none;width:22px;height:22px;border-radius:50%}
+input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+input[type=color]::-webkit-color-swatch{border:none;border-radius:50%}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#f0f4ff}::-webkit-scrollbar-thumb{background:#d0d8ff;border-radius:2px}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.up{animation:up .3s ease forwards}.fade{animation:fade .2s ease}
+button{font-family:'Noto Sans TC',sans-serif;cursor:pointer}
+input{font-family:'Noto Sans TC',sans-serif}
+button:active{transform:scale(.97)}
+#app{display:flex;justify-content:center;min-height:100vh}
+#main{width:100%;max-width:480px;display:flex;flex-direction:column;min-height:100vh}
+#header{background:linear-gradient(135deg,#7c6cfc,#38b6ff);padding:24px 20px 20px;position:relative;overflow:hidden}
+#header::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.12);pointer-events:none}
+.month-row{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.mbtn{background:rgba(255,255,255,.2);border:none;color:white;width:30px;height:30px;border-radius:10px;font-size:18px;display:flex;align-items:center;justify-content:center}
+#mlabel{font-size:15px;font-weight:700;color:white;flex:1}
+.stats{display:flex}.stat{flex:1;text-align:center}
+.sval{font-size:20px;font-weight:900;color:white;letter-spacing:-1px}
+.slbl{font-size:10px;color:rgba(255,255,255,.7);margin-top:3px;letter-spacing:1px}
+#sind{display:flex;justify-content:flex-end;margin-top:10px;min-height:16px;font-size:11px}
+#nav{display:flex;background:white;border-bottom:1px solid #d0d8ff;position:sticky;top:0;z-index:50;box-shadow:0 2px 12px #7c6cfc18}
+.nb{flex:1;padding:12px 0 10px;background:none;border:none;color:#8b93c8;display:flex;flex-direction:column;align-items:center;gap:3px;border-bottom:2.5px solid transparent;font-weight:400;transition:color .15s;font-size:10px}
+.nb.on{color:#7c6cfc;border-bottom-color:#7c6cfc;font-weight:700}
+.ni{font-size:18px;line-height:1}
+#content{flex:1;padding:16px 14px 48px}
+.sl{font-size:11px;font-weight:700;letter-spacing:2px;color:#8b93c8;text-transform:uppercase;margin-bottom:10px}
+.sl.mt{margin-top:20px}
+.cb{background:white;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 12px #7c6cfc18;border:1px solid #d0d8ff;opacity:0}
+.ctop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.cch{font-size:11px;color:#8b93c8;margin-top:6px}
+.rw{position:relative}.rpct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+.rrow{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:12px}
+.ramt{font-size:26px;font-weight:900}.rsub{font-size:11px;color:#8b93c8}
+.rlbl{font-size:13px;font-weight:700;text-align:right}.rlbl2{font-size:11px;color:#8b93c8;margin-top:2px;text-align:right}
+.pt{height:6px;background:#e8eeff;border-radius:3px;overflow:hidden;margin-bottom:10px}
+.pf{height:100%;border-radius:3px;transition:width .6s ease}
+.cf{display:flex;justify-content:space-between;font-size:11px;color:#8b93c8}
+.badge{display:inline-flex;align-items:center;border-radius:20px;font-size:12px;font-weight:700;padding:4px 14px;border:1px solid}
+.bsm{font-size:10px;padding:2px 8px}
+.cgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.ccell{background:white;border-radius:14px;padding:14px 8px;text-align:center;box-shadow:0 2px 12px #7c6cfc18;border:1px solid #d0d8ff}
+.fl{font-size:11px;color:#8b93c8;font-weight:600;letter-spacing:1px;display:block;margin-bottom:6px}
+.fi{width:100%;background:white;border:1.5px solid #d0d8ff;border-radius:12px;padding:13px 14px;color:#1e1b4b;font-size:15px;outline:none}
+.fi:focus{border-color:#7c6cfc;box-shadow:0 0 0 3px #7c6cfc22}
+.cr{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:7px 14px;border-radius:20px;border:1.5px solid #d0d8ff;background:white;color:#4b5080;font-size:12px;font-weight:400;transition:all .15s}
+.chip.on{background:#7c6cfc;border-color:#7c6cfc;color:white;font-weight:700;box-shadow:0 2px 8px #7c6cfc44}
+.sbtn{background:linear-gradient(135deg,#7c6cfc,#38b6ff);border:none;color:white;border-radius:14px;padding:16px;font-size:15px;font-weight:800;width:100%;letter-spacing:2px;box-shadow:0 4px 20px #7c6cfc44}
+.abtn{background:linear-gradient(135deg,#7c6cfc,#38b6ff);border:none;border-radius:10px;padding:8px 16px;color:white;font-size:12px;font-weight:700;box-shadow:0 2px 10px #7c6cfc44}
+.csel{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-radius:14px;border:1.5px solid #d0d8ff;background:white;width:100%;text-align:left;transition:all .15s;box-shadow:0 2px 12px #7c6cfc18;margin-bottom:8px}
+.ri{display:flex;align-items:center;gap:12px;background:white;border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:0 2px 12px #7c6cfc18;border-left:4px solid}
+.rl{flex:1}.rm{display:flex;align-items:center;gap:8px;margin-bottom:4px}.rd{font-size:10px;color:#8b93c8;margin-left:auto}
+.smb{border-radius:16px;padding:14px;margin-bottom:14px;border:1.5px solid}
+.smo{margin-top:10px;border-top:1px solid #d0d8ff;padding-top:10px}
+.mg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.mc{text-align:center;background:#f0f4ff;border-radius:10px;padding:8px 4px}
+.mi{font-size:11px;color:#8b93c8;line-height:1.9;margin-top:4px}
+.cat-mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.camc{background:white;border-radius:14px;padding:12px 8px;text-align:center;box-shadow:0 2px 12px #7c6cfc18;border:1px solid #d0d8ff}
+.dcard{background:white;border-radius:14px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 12px #7c6cfc18;border:1px solid #d0d8ff;display:flex;justify-content:space-between;align-items:center}
+.dbtn{width:100%;background:white;border-radius:14px;padding:14px;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:900;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}
+.sh{background:#f0f4ff;border-radius:24px 24px 0 0;width:100%;max-width:480px;box-shadow:0 -8px 40px #7c6cfc22;border:1px solid #d0d8ff;max-height:92vh;display:flex;flex-direction:column}
+.shd{display:flex;justify-content:center;padding:12px 0 4px}.shdb{width:36px;height:4px;border-radius:2px;background:#d0d8ff}
+.shh{display:flex;justify-content:space-between;align-items:center;padding:8px 20px 14px;border-bottom:1px solid #d0d8ff}
+.sht{font-size:17px;font-weight:800;color:#1e1b4b}
+.shc{background:#e8eeff;border:none;color:#4b5080;width:28px;height:28px;border-radius:8px;font-size:16px}
+.shb{flex:1;overflow-y:auto;padding:14px 16px 8px}
+.shf{display:flex;gap:10px;padding:12px 16px 24px;border-top:1px solid #d0d8ff}
+.sinp{width:100%;background:white;border:1.5px solid #d0d8ff;border-radius:10px;padding:11px 12px;color:#1e1b4b;font-size:14px;outline:none}
+.sinp.err{border-color:#f43f5e}.ferr{font-size:11px;color:#f43f5e;margin-top:3px}
+.hb{font-size:12px;color:#7c6cfc;background:#7c6cfc12;border:1px solid #7c6cfc30;border-radius:10px;padding:9px 14px;margin-bottom:10px}
+.cancbtn{flex:1;background:#e8eeff;border:none;border-radius:12px;padding:14px 0;color:#4b5080;font-size:14px;font-weight:700}
+.savbtn{flex:2;background:linear-gradient(135deg,#7c6cfc,#38b6ff);border:none;border-radius:12px;padding:14px 0;color:white;font-size:14px;font-weight:800;box-shadow:0 4px 16px #7c6cfc44}
+.delbtn{background:white;border:1.5px solid rgba(244,63,94,.3);border-radius:12px;padding:12px 14px;color:#f43f5e;font-size:13px;font-weight:700}
+.cdot{width:22px;height:22px;border-radius:50%;border:2.5px solid transparent}.cdot.sel{border-color:#333}
+.emb{width:56px;height:52px;border-radius:12px;border:1.5px solid #d0d8ff;background:white;font-size:24px;display:flex;align-items:center;justify-content:center}
+.emp{position:absolute;top:60px;left:0;background:white;border:1px solid #d0d8ff;border-radius:16px;padding:10px;z-index:20;width:240px;display:flex;flex-wrap:wrap;gap:4px;box-shadow:0 8px 32px rgba(0,0,0,.1)}
+.emo{width:34px;height:34px;border-radius:8px;border:none;background:transparent;font-size:18px;cursor:pointer}.emo.sel{background:#e8eeff}
+.conf{background:white;border-radius:20px;padding:28px;width:300px;box-shadow:0 8px 40px rgba(0,0,0,.12)}
+.empty{text-align:center;color:#8b93c8;padding:60px 20px;line-height:2}
+.gbtn{margin-top:16px;background:linear-gradient(135deg,#7c6cfc,#38b6ff);border:none;border-radius:12px;padding:10px 24px;color:white;font-size:13px;font-weight:700;box-shadow:0 4px 16px #7c6cfc44}
+#toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 24px;border-radius:24px;font-size:13px;font-weight:700;color:white;z-index:3000;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.15);display:none;animation:up .2s ease}
+</style>
 </head>
 <body>
 <div id="app"><div id="main">
   <div id="header">
     <div class="month-row">
-      <button class="mbtn" id="pm">‹</button>
+      <button class="mbtn" id="pm">&#8249;</button>
       <span id="mlabel"></span>
-      <button class="mbtn" id="nm">›</button>
+      <button class="mbtn" id="nm">&#8250;</button>
     </div>
     <div class="stats">
       <div class="stat"><div class="sval" id="hs">$0</div><div class="slbl">本月消費</div></div>
@@ -114,157 +116,671 @@
     <div id="sind"></div>
   </div>
   <nav id="nav">
-    <button class="nb on" data-v="home"><span class="ni">▦</span>總覽</button>
-    <button class="nb" data-v="add"><span class="ni">⊕</span>記帳</button>
-    <button class="nb" data-v="history"><span class="ni">≡</span>紀錄</button>
-    <button class="nb" data-v="cards"><span class="ni">◈</span>管理</button>
+    <button class="nb on" data-v="home"><span class="ni">&#9638;</span>總覽</button>
+    <button class="nb" data-v="add"><span class="ni">&#8853;</span>記帳</button>
+    <button class="nb" data-v="history"><span class="ni">&#8801;</span>紀錄</button>
+    <button class="nb" data-v="cards"><span class="ni">&#9672;</span>管理</button>
   </nav>
   <div id="content"></div>
 </div></div>
 <div id="toast"></div>
 <input type="file" id="fimp" accept=".json" style="display:none">
+
 <script>
-const C={primary:'#7c6cfc',accent:'#38b6ff',pink:'#f472b6',text:'#1e1b4b',text2:'#4b5080',text3:'#8b93c8',danger:'#f43f5e',warn:'#f59e0b',ok:'#10b981',bg:'#f0f4ff',bg3:'#e8eeff',border:'#d0d8ff'};
-const EMOJIS=['🍜','🍣','☕','🍺','🛍','👗','👟','💄','🚇','🚗','⛽','✈️','🛒','🏬','🏪','🏦','🎬','🎮','🎵','📚','💊','🏥','🏋️','⛳','📱','💻','🖥️','📷','🎁','💍','🏠','🔧','🌿','🐾','📦','💰','🍎','🛞','🧴','🧾','🎓','🏖️','🚿','🪴','🐶'];
-const DCATS=[{id:'dining',emoji:'🍜',name:'餐飲',channels:['all','dining'],builtIn:true},{id:'shopping',emoji:'🛍',name:'購物',channels:['all','online'],builtIn:true},{id:'online',emoji:'💻',name:'網購',channels:['all','online'],builtIn:true},{id:'transport',emoji:'🚇',name:'交通',channels:['all'],builtIn:true},{id:'grocery',emoji:'🛒',name:'超市',channels:['all','supermarket'],builtIn:true},{id:'department',emoji:'🏬',name:'百貨',channels:['all'],builtIn:true},{id:'wholesale',emoji:'🏪',name:'量販',channels:['all','supermarket'],builtIn:true},{id:'gas',emoji:'⛽',name:'加油',channels:['all'],builtIn:true},{id:'entertainment',emoji:'🎬',name:'娛樂',channels:['all','online'],builtIn:true},{id:'linepay',emoji:'📱',name:'LINE Pay',channels:['all','linepay'],builtIn:true},{id:'applepay',emoji:'🍎',name:'Apple Pay',channels:['all'],builtIn:true},{id:'jkopay',emoji:'🏪',name:'街口',channels:['all','jkopay'],builtIn:true},{id:'other',emoji:'📦',name:'其他',channels:['all'],builtIn:true}];
-const CHOPTS=[{id:'all',l:'所有通路'},{id:'online',l:'網路消費'},{id:'linepay',l:'LINE Pay'},{id:'jkopay',l:'街口支付'},{id:'supermarket',l:'超市/量販'},{id:'dining',l:'餐飲消費'}];
-const CYOPTS=[{id:'monthly',l:'每月重置'},{id:'quarterly',l:'每季重置'},{id:'yearly',l:'每年重置'}];
-const APS=['#38b6ff','#7c6cfc','#f472b6','#06c87a','#f59e0b','#f43f5e','#34d399','#fbbf24','#60a5fa','#a78bfa','#fb7185','#4ade80'];
-const BPS=['#1e3a5f','#2d1b69','#5b0e2d','#064e3b','#1e1b4b','#0c4a6e','#3b0764','#052e16'];
-const DCARDS=[{id:'fen',name:'永豐大戶卡',bank:'永豐銀行',color:'#1e3a5f',accent:'#38b6ff',rate:2.5,cap:400,cycle:'monthly',resetDay:1,channels:['all'],channelLabel:'所有通路',note:'每月回饋上限 $400'},{id:'lp',name:'LINE Pay 卡',bank:'中國信託',color:'#2d1b69',accent:'#7c6cfc',rate:3.0,cap:500,cycle:'monthly',resetDay:1,channels:['linepay'],channelLabel:'LINE Pay 消費',note:'僅限 LINE Pay 付款'},{id:'jko',name:'街口聯名卡',bank:'第一銀行',color:'#5b0e2d',accent:'#f472b6',rate:2.0,cap:300,cycle:'monthly',resetDay:1,channels:['jkopay'],channelLabel:'街口支付',note:'僅限街口支付'},{id:'ubt',name:'Ubot 鈦金卡',bank:'聯邦銀行',color:'#064e3b',accent:'#34d399',rate:2.2,cap:600,cycle:'monthly',resetDay:1,channels:['online'],channelLabel:'網路消費',note:'網路刷卡 2.2%'}];
-const K={ca:'ct_ca6',re:'ct_re6',ct:'ct_ct6',ls:'ct_ls6'};
-const lg=(k,fb)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):fb;}catch{return fb;}};
-const ls=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}};
-const nm=()=>{const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;};
-const td=()=>new Date().toISOString().slice(0,10);
-const uid=()=>Math.random().toString(36).slice(2,9);
-const f$=n=>'$'+Math.round(n).toLocaleString('zh-TW');
-const fd=d=>{const dt=new Date(d);return`${dt.getMonth()+1}/${dt.getDate()}`;};
-const ft=d=>{if(!d)return'';const dt=new Date(d);return`${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;};
-const ms=c=>c.cap/(c.rate/100);
-function getSmp(){const m=nm();return[{id:1,cardId:'fen',amount:3200,catId:'online',note:'momo購物',date:`${m}-05`},{id:2,cardId:'fen',amount:5500,catId:'dining',note:'家族聚餐',date:`${m}-10`},{id:3,cardId:'lp',amount:420,catId:'linepay',note:'LINE Pay 早午餐',date:`${m}-12`},{id:4,cardId:'jko',amount:1280,catId:'wholesale',note:'好市多',date:`${m}-14`},{id:5,cardId:'ubt',amount:2400,catId:'online',note:'蝦皮購物',date:`${m}-16`},{id:6,cardId:'fen',amount:1800,catId:'gas',note:'加油',date:`${m}-18`},{id:7,cardId:'lp',amount:3600,catId:'applepay',note:'Apple Pay 百貨',date:`${m}-20`}];}
-let S={cards:lg(K.ca,DCARDS),recs:lg(K.re,getSmp()),cats:lg(K.ct,DCATS),view:'home',month:nm(),form:{cardId:'',amt:'',catId:'dining',note:'',date:td()}};
-if(S.cards.length&&!S.form.cardId)S.form.cardId=S.cards[0].id;
-let svt=null,svs='idle';
-function save(){svs='saving';rsi();clearTimeout(svt);svt=setTimeout(()=>{ls(K.ca,S.cards);ls(K.re,S.recs);ls(K.ct,S.cats);localStorage.setItem(K.ls,new Date().toISOString());svs='saved';rsi();setTimeout(()=>{svs='idle';rsi();},2000);},800);}
-function rsi(){const el=document.getElementById('sind');if(!el)return;if(svs==='saving')el.innerHTML=`<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:rgba(255,255,255,.7)"><span style="width:6px;height:6px;border-radius:50%;background:#f59e0b;display:inline-block;animation:pulse 1s infinite"></span>儲存中…</span>`;else if(svs==='saved')el.innerHTML=`<span style="font-size:11px;color:#84ffda">✓ 已自動存檔</span>`;else{const t=localStorage.getItem(K.ls);el.innerHTML=t?`<span style="font-size:11px;color:rgba(255,255,255,.6)">上次存檔 ${ft(new Date(t))}</span>`:''}}
-let tt;
-function toast(msg,type='ok'){const el=document.getElementById('toast');el.textContent=msg;el.style.background=type==='err'?C.danger:type==='warn'?C.warn:C.ok;el.style.display='block';clearTimeout(tt);tt=setTimeout(()=>el.style.display='none',2600);}
-function ring(prog,size,col){const s=6,r=(size-s)/2,ci=2*Math.PI*r,co=prog>=1?C.danger:prog>0.8?C.warn:col,off=ci*(1-Math.min(prog,1));return`<svg width="${size}" height="${size}" style="transform:rotate(-90deg)"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${C.bg3}" stroke-width="${s}"/><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${co}" stroke-width="${s}" stroke-dasharray="${ci}" stroke-dashoffset="${off}" stroke-linecap="round" style="transition:stroke-dashoffset .6s ease"/></svg>`;}
-function badge(card,sm){return`<span class="badge${sm?' bsm':''}" style="background:${card.color};color:${card.accent};border-color:${card.accent}55;box-shadow:0 2px 8px ${card.accent}22">${card.name}</span>`;}
-function cstat(card){const r=S.recs.filter(x=>x.cardId===card.id&&x.date.startsWith(S.month));const sp=r.reduce((s,x)=>s+x.amount,0),rw=Math.min(sp*(card.rate/100),card.cap),msp=ms(card);return{sp,rw,prog:Math.min(sp/msp,1),rem:Math.max(msp-sp,0),rl:Math.max(card.cap-rw,0),r};}
-function rank(amt,catId){const cat=S.cats.find(c=>c.id===catId);return S.cards.map(card=>{const ok=card.channels.some(ch=>cat?.channels?.includes(ch));if(!ok)return{card,tr:0,ob:0,score:-999,reason:'通路不符',dis:true};const{sp,rw}=cstat(card),ns=sp+amt,nr=Math.min(ns*(card.rate/100),card.cap),tr=nr-rw,ob=Math.max(ns-ms(card),0);return{card,tr,ob,score:tr-ob*.5,reason:ob>0?`超出上限 ${f$(ob)}`:`可獲回饋 ${f$(tr)}`,dis:false};}).sort((a,b)=>b.score-a.score);}
-function exp(){const b=new Blob([JSON.stringify({v:6,at:new Date().toISOString(),cards:S.cards,recs:S.recs,cats:S.cats},null,2)],{type:'application/json'});const u=URL.createObjectURL(b);Object.assign(document.createElement('a'),{href:u,download:`card-tracker-${td()}.json`}).click();URL.revokeObjectURL(u);toast('匯出成功 ✓');}
-document.getElementById('fimp').onchange=function(){const file=this.files?.[0];if(!file)return;const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);if(!d.cards)throw 0;S.cards=d.cards;S.recs=d.recs||d.records||[];if(d.cats)S.cats=d.cats;save();toast(`匯入完成：${S.cards.length}張卡`);render();}catch(er){toast('匯入失敗','err');}};r.readAsText(file);this.value='';};
-function rh(){const[y,m]=S.month.split('-');document.getElementById('mlabel').textContent=`${y} 年 ${parseInt(m)} 月`;const r=S.recs.filter(x=>x.date.startsWith(S.month));document.getElementById('hs').textContent=f$(r.reduce((s,x)=>s+x.amount,0));document.getElementById('hr').textContent=f$(S.cards.reduce((s,c)=>s+cstat(c).rw,0));document.getElementById('hc').textContent=r.length;document.getElementById('nm').disabled=S.month>=nm();rsi();}
-function vHome(){const r=S.recs.filter(x=>x.date.startsWith(S.month));if(!S.cards.length)return`<div class="empty"><div style="font-size:40px;margin-bottom:12px">💳</div><div style="font-weight:600">還沒有信用卡</div><button class="gbtn" onclick="sv('cards')">前往新增</button></div>`;let h=`<div class="sl">信用卡回饋進度</div>`;S.cards.forEach((card,i)=>{const{sp,rw,prog,rem,rl}=cstat(card),io=prog>=1,iw=prog>.8;const bc=io?`linear-gradient(90deg,${C.danger},#ff8f70)`:iw?`linear-gradient(90deg,${C.warn},#fcd34d)`:`linear-gradient(90deg,${card.accent}cc,${card.accent})`;h+=`<div class="cb up" style="animation-delay:${i*.07}s"><div class="ctop"><div>${badge(card)}<div class="cch">${card.channelLabel} · 每月${card.resetDay}號重置</div></div><div class="rw">${ring(prog,64,card.accent)}<div class="rpct" style="color:${card.accent}">${Math.round(prog*100)}%</div></div></div><div class="rrow"><div><div class="ramt" style="color:${card.accent}">${f$(rw)}</div><div class="rsub">已獲回饋 / 上限 ${f$(card.cap)}</div></div><div><div class="rlbl" style="color:${io?C.danger:iw?C.warn:C.text2}">${io?'⚠ 已達上限':`還可刷 ${f$(rem)}`}</div><div class="rlbl2">${io?'建議換其他卡':`尚可回饋 ${f$(rl)}`}</div></div></div><div class="pt"><div class="pf" style="width:${prog*100}%;background:${bc}"></div></div><div class="cf"><span>已刷 ${f$(sp)}</span><span>回饋率 ${card.rate}%</span></div></div>`;});const cb=S.cats.map(c=>({...c,tot:r.filter(x=>x.catId===c.id).reduce((s,x)=>s+x.amount,0)})).filter(c=>c.tot>0).sort((a,b)=>b.tot-a.tot);if(cb.length){h+=`<div class="sl mt">消費類別分析</div><div class="cgrid">`;cb.forEach(c=>{h+=`<div class="ccell"><div style="font-size:22px">${c.emoji}</div><div style="font-size:10px;color:${C.text3};margin:4px 0">${c.name}</div><div style="font-size:13px;font-weight:700;color:${C.text}">${f$(c.tot)}</div></div>`;});h+=`</div>`;}return h;}
-function vAdd(){
-  if(!S.cards.length)return`<div class="empty">請先新增信用卡<br><button class="gbtn" onclick="sv('cards')">前往新增</button></div>`;
-  const amt=+S.form.amt,rk=amt>0?rank(amt,S.form.catId):[],best=rk.find(x=>!x.dis);
-  let h=`<div class="sl">新增消費紀錄</div>`;
+// ── CONSTANTS ────────────────────────────────────────────────────────────────
+var C={primary:'#7c6cfc',accent:'#38b6ff',pink:'#f472b6',text:'#1e1b4b',text2:'#4b5080',text3:'#8b93c8',danger:'#f43f5e',warn:'#f59e0b',ok:'#10b981',bg:'#f0f4ff',bg3:'#e8eeff',border:'#d0d8ff'};
+var EMOJIS=['🍜','🍣','☕','🍺','🛍','👗','👟','💄','🚇','🚗','⛽','✈️','🛒','🏬','🏪','🏦','🎬','🎮','🎵','📚','💊','🏥','🏋️','⛳','📱','💻','🖥️','📷','🎁','💍','🏠','🔧','🌿','🐾','📦','💰','🍎','🛞','🧴','🧾','🎓','🏖️','🚿','🪴','🐶'];
+var DCATS=[
+  {id:'dining',emoji:'🍜',name:'餐飲',channels:['all','dining'],builtIn:true},
+  {id:'shopping',emoji:'🛍',name:'購物',channels:['all','online'],builtIn:true},
+  {id:'online',emoji:'💻',name:'網購',channels:['all','online'],builtIn:true},
+  {id:'transport',emoji:'🚇',name:'交通',channels:['all'],builtIn:true},
+  {id:'grocery',emoji:'🛒',name:'超市',channels:['all','supermarket'],builtIn:true},
+  {id:'department',emoji:'🏬',name:'百貨',channels:['all'],builtIn:true},
+  {id:'wholesale',emoji:'🏪',name:'量販',channels:['all','supermarket'],builtIn:true},
+  {id:'gas',emoji:'⛽',name:'加油',channels:['all'],builtIn:true},
+  {id:'entertainment',emoji:'🎬',name:'娛樂',channels:['all','online'],builtIn:true},
+  {id:'linepay',emoji:'📱',name:'LINE Pay',channels:['all','linepay'],builtIn:true},
+  {id:'applepay',emoji:'🍎',name:'Apple Pay',channels:['all'],builtIn:true},
+  {id:'jkopay',emoji:'🏪',name:'街口',channels:['all','jkopay'],builtIn:true},
+  {id:'other',emoji:'📦',name:'其他',channels:['all'],builtIn:true}
+];
+var CHOPTS=[{id:'all',l:'所有通路'},{id:'online',l:'網路消費'},{id:'linepay',l:'LINE Pay'},{id:'jkopay',l:'街口支付'},{id:'supermarket',l:'超市/量販'},{id:'dining',l:'餐飲消費'}];
+var CYOPTS=[{id:'monthly',l:'每月重置'},{id:'quarterly',l:'每季重置'},{id:'yearly',l:'每年重置'}];
+var APS=['#38b6ff','#7c6cfc','#f472b6','#06c87a','#f59e0b','#f43f5e','#34d399','#fbbf24','#60a5fa','#a78bfa','#fb7185','#4ade80'];
+var BPS=['#1e3a5f','#2d1b69','#5b0e2d','#064e3b','#1e1b4b','#0c4a6e','#3b0764','#052e16'];
+var DCARDS=[
+  {id:'fen',name:'永豐大戶卡',bank:'永豐銀行',color:'#1e3a5f',accent:'#38b6ff',rate:2.5,cap:400,cycle:'monthly',resetDay:1,channels:['all'],channelLabel:'所有通路',note:'每月回饋上限 $400'},
+  {id:'lp',name:'LINE Pay 卡',bank:'中國信託',color:'#2d1b69',accent:'#7c6cfc',rate:3.0,cap:500,cycle:'monthly',resetDay:1,channels:['linepay'],channelLabel:'LINE Pay 消費',note:'僅限 LINE Pay 付款'},
+  {id:'jko',name:'街口聯名卡',bank:'第一銀行',color:'#5b0e2d',accent:'#f472b6',rate:2.0,cap:300,cycle:'monthly',resetDay:1,channels:['jkopay'],channelLabel:'街口支付',note:'僅限街口支付'},
+  {id:'ubt',name:'Ubot 鈦金卡',bank:'聯邦銀行',color:'#064e3b',accent:'#34d399',rate:2.2,cap:600,cycle:'monthly',resetDay:1,channels:['online'],channelLabel:'網路消費',note:'網路刷卡 2.2%'}
+];
 
-// 智慧推薦（獨立區塊，id=smart-banner）
-let bannerHtml=’’;
-if(amt>0&&best){
-let oth=’’;
-if(rk.length>1){oth=`<div class="smo">`+rk.slice(1).map(x=>`<div style="display:flex;align-items:center;gap:8px;margin-top:6px">${badge(x.card,true)}<span style="font-size:11px;color:${x.dis?C.text3:x.ob>0?C.warn:C.text2}">${x.dis?'⊘ 通路不符':x.reason}</span></div>`).join(’’)+`</div>`;}
-bannerHtml=`<div class="smb" style="background:linear-gradient(135deg,${best.card.accent}18,${best.card.accent}08);border-color:${best.card.accent}55"><div style="font-size:10px;color:${C.text3};letter-spacing:2px;margin-bottom:8px;font-weight:600">⚡ 智慧推薦</div><div style="display:flex;justify-content:space-between;align-items:center"><div>${badge(best.card,true)}<div style="font-size:12px;color:${C.text2};margin-top:6px">${best.reason}</div></div><button onclick="uf('cardId','${best.card.id}')" style="background:linear-gradient(135deg,${best.card.accent},${best.card.accent}cc);border:none;border-radius:10px;padding:7px 14px;font-size:12px;font-weight:700;color:white">套用</button></div>${oth}</div>`;
+// ── STORAGE ──────────────────────────────────────────────────────────────────
+var K={ca:'ct_ca6',re:'ct_re6',ct:'ct_ct6',ls:'ct_ls6'};
+function lg(k,fb){try{var v=localStorage.getItem(k);return v?JSON.parse(v):fb;}catch(e){return fb;}}
+function ls(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function nm(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+function td(){return new Date().toISOString().slice(0,10);}
+function uid(){return Math.random().toString(36).slice(2,9);}
+function fs(n){return '$'+Math.round(n).toLocaleString('zh-TW');}
+function fd(d){var dt=new Date(d);return (dt.getMonth()+1)+'/'+dt.getDate();}
+function ft(d){if(!d)return'';var dt=new Date(d);return String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0');}
+function msp(c){return c.cap/(c.rate/100);}
+
+function getSmp(){
+  var m=nm();
+  return [
+    {id:1,cardId:'fen',amount:3200,catId:'online',note:'momo購物',date:m+'-05'},
+    {id:2,cardId:'fen',amount:5500,catId:'dining',note:'家族聚餐',date:m+'-10'},
+    {id:3,cardId:'lp',amount:420,catId:'linepay',note:'LINE Pay 早午餐',date:m+'-12'},
+    {id:4,cardId:'jko',amount:1280,catId:'wholesale',note:'好市多',date:m+'-14'},
+    {id:5,cardId:'ubt',amount:2400,catId:'online',note:'蝦皮購物',date:m+'-16'},
+    {id:6,cardId:'fen',amount:1800,catId:'gas',note:'加油',date:m+'-18'},
+    {id:7,cardId:'lp',amount:3600,catId:'applepay',note:'Apple Pay 百貨',date:m+'-20'}
+  ];
 }
-h+=`<div id="smart-banner">${bannerHtml}</div>`;
 
-// 表單主體（id=add-form-wrap，輸入欄位不觸發重繪）
-h+=`<div id="add-form-wrap" style="display:flex;flex-direction:column;gap:14px"> <div><label class="fl">消費金額（TWD）</label><div style="position:relative"> <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:${C.text3};font-size:20px">$</span> <input id="fa" class="fi" type="number" placeholder="0" value="${S.form.amt}" style="padding-left:32px;font-size:24px;${amt>0?`box-shadow:0 0 0 3px ${C.primary}22`:''}" oninput="uf('amt',this.value)"> </div></div> <div><label class="fl">消費類別</label><div class="cr">`;
-S.cats.forEach(c=>{h+=`<button class="chip${S.form.catId===c.id?' on':''}" onclick="uf('catId','${c.id}')">${c.emoji} ${c.name}</button>`;});
-h+=`</div></div><div><label class="fl">選擇信用卡</label>`;
-S.cards.forEach(card=>{
-const act=S.form.cardId===card.id,rec=rk.find(x=>x.card.id===card.id);
-let rl=’’;
-if(rec&&!rec.dis)rl=`<span style="font-size:12px;font-weight:700;color:${rec.ob>0?C.warn:C.ok}">${rec.ob>0?`超 ${f$(rec.ob)}`:`+${f$(rec.tr)}`}</span>`;
-else if(rec?.dis)rl=`<span style="font-size:10px;color:${C.text3}">通路不符</span>`;
-h+=`<button class="csel" onclick="uf('cardId','${card.id}')" style="border-color:${act?card.accent:C.border};background:${act?card.color:'white'}"> <div style="display:flex;align-items:center;gap:10px"> <div style="width:10px;height:10px;border-radius:50%;background:${card.accent};box-shadow:0 0 0 3px ${card.accent}33"></div> <div><div style="font-size:13px;font-weight:700;color:${act?card.accent:C.text}">${card.name}</div> <div style="font-size:10px;color:${act?card.accent+'99':C.text3}">${card.channelLabel} · ${card.rate}% 回饋</div></div> </div>${rl}</button>`;
-});
-h+=`</div>
-<div style="display:flex;gap:10px">
-<div style="display:flex;flex-direction:column;gap:6px;flex:1">
-<label class="fl">備註</label>
-<input id="fn" class="fi" type="text" placeholder="消費說明（可略）" value="${S.form.note}"
-oninput="S.form.note=this.value">
-</div>
-<div style="display:flex;flex-direction:column;gap:6px">
-<label class="fl">日期</label>
-<input id="fd" class="fi" type="date" value="${S.form.date}" max="${td()}"
-style="width:128px" onchange="S.form.date=this.value">
-</div>
-</div>
-<button class="sbtn" onclick="addRec()">記帳</button>
+// ── STATE ─────────────────────────────────────────────────────────────────────
+var S={
+  cards:lg(K.ca,DCARDS),
+  recs:lg(K.re,getSmp()),
+  cats:lg(K.ct,DCATS),
+  view:'home',
+  month:nm(),
+  form:{cardId:'',amt:'',catId:'dining',note:'',date:td()}
+};
+if(S.cards.length&&!S.form.cardId)S.form.cardId=S.cards[0].id;
 
-  </div>`;
+// ── AUTO-SAVE ─────────────────────────────────────────────────────────────────
+var svt=null,svs='idle';
+function save(){
+  svs='saving';rsi();clearTimeout(svt);
+  svt=setTimeout(function(){
+    ls(K.ca,S.cards);ls(K.re,S.recs);ls(K.ct,S.cats);
+    localStorage.setItem(K.ls,new Date().toISOString());
+    svs='saved';rsi();
+    setTimeout(function(){svs='idle';rsi();},2000);
+  },800);
+}
+function rsi(){
+  var el=document.getElementById('sind');if(!el)return;
+  if(svs==='saving'){
+    el.innerHTML='<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:rgba(255,255,255,.7)"><span style="width:6px;height:6px;border-radius:50%;background:#f59e0b;display:inline-block;animation:pulse 1s infinite"></span>儲存中…</span>';
+  }else if(svs==='saved'){
+    el.innerHTML='<span style="font-size:11px;color:#84ffda">✓ 已自動存檔</span>';
+  }else{
+    var t=localStorage.getItem(K.ls);
+    el.innerHTML=t?'<span style="font-size:11px;color:rgba(255,255,255,.6)">上次存檔 '+ft(new Date(t))+'</span>':'';
+  }
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+var tt;
+function toast(msg,type){
+  type=type||'ok';
+  var el=document.getElementById('toast');
+  el.textContent=msg;
+  el.style.background=type==='err'?C.danger:type==='warn'?C.warn:C.ok;
+  el.style.display='block';
+  clearTimeout(tt);tt=setTimeout(function(){el.style.display='none';},2600);
+}
+
+// ── RING ──────────────────────────────────────────────────────────────────────
+function ring(prog,size,col){
+  var s=6,r=(size-s)/2,ci=2*Math.PI*r;
+  var co=prog>=1?C.danger:prog>0.8?C.warn:col;
+  var off=ci*(1-Math.min(prog,1));
+  return '<svg width="'+size+'" height="'+size+'" style="transform:rotate(-90deg)">'+
+    '<circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" fill="none" stroke="'+C.bg3+'" stroke-width="'+s+'"/>'+
+    '<circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" fill="none" stroke="'+co+'" stroke-width="'+s+'"'+
+    ' stroke-dasharray="'+ci+'" stroke-dashoffset="'+off+'" stroke-linecap="round"'+
+    ' style="transition:stroke-dashoffset .6s ease"/></svg>';
+}
+
+// ── BADGE ─────────────────────────────────────────────────────────────────────
+function badge(card,sm){
+  return '<span class="badge'+(sm?' bsm':'')+'" style="background:'+card.color+';color:'+card.accent+';border-color:'+card.accent+'55;box-shadow:0 2px 8px '+card.accent+'22">'+card.name+'</span>';
+}
+
+// ── CARD STATS ────────────────────────────────────────────────────────────────
+function cstat(card){
+  var r=S.recs.filter(function(x){return x.cardId===card.id&&x.date.startsWith(S.month);});
+  var sp=r.reduce(function(s,x){return s+x.amount;},0);
+  var rw=Math.min(sp*(card.rate/100),card.cap);
+  var ms=msp(card);
+  return{sp:sp,rw:rw,prog:Math.min(sp/ms,1),rem:Math.max(ms-sp,0),rl:Math.max(card.cap-rw,0),r:r};
+}
+
+function rank(amt,catId){
+  var cat=S.cats.find(function(c){return c.id===catId;});
+  return S.cards.map(function(card){
+    var ok=card.channels.some(function(ch){return cat&&cat.channels&&cat.channels.indexOf(ch)>=0;});
+    if(!ok)return{card:card,tr:0,ob:0,score:-999,reason:'通路不符',dis:true};
+    var st=cstat(card),ns=st.sp+amt;
+    var nr=Math.min(ns*(card.rate/100),card.cap),tr=nr-st.rw,ob=Math.max(ns-msp(card),0);
+    return{card:card,tr:tr,ob:ob,score:tr-ob*.5,reason:ob>0?'超出上限 '+fs(ob):'可獲回饋 '+fs(tr),dis:false};
+  }).sort(function(a,b){return b.score-a.score;});
+}
+
+// ── EXPORT / IMPORT ───────────────────────────────────────────────────────────
+function exp(){
+  var data=JSON.stringify({v:6,at:new Date().toISOString(),cards:S.cards,recs:S.recs,cats:S.cats},null,2);
+  var b=new Blob([data],{type:'application/json'});
+  var u=URL.createObjectURL(b);
+  var a=document.createElement('a');
+  a.href=u;a.download='card-tracker-'+td()+'.json';a.click();
+  URL.revokeObjectURL(u);toast('匯出成功 ✓');
+}
+document.getElementById('fimp').onchange=function(){
+  var file=this.files&&this.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var d=JSON.parse(e.target.result);
+      if(!d.cards)throw new Error('格式不符');
+      S.cards=d.cards;S.recs=d.recs||d.records||[];
+      if(d.cats)S.cats=d.cats;
+      save();toast('匯入完成：'+S.cards.length+'張卡');render();
+    }catch(er){toast('匯入失敗','err');}
+  };
+  reader.readAsText(file);this.value='';
+};
+
+// ── RENDER HEADER ─────────────────────────────────────────────────────────────
+function rh(){
+  var parts=S.month.split('-');
+  document.getElementById('mlabel').textContent=parts[0]+' 年 '+parseInt(parts[1])+' 月';
+  var r=S.recs.filter(function(x){return x.date.startsWith(S.month);});
+  document.getElementById('hs').textContent=fs(r.reduce(function(s,x){return s+x.amount;},0));
+  document.getElementById('hr').textContent=fs(S.cards.reduce(function(s,c){return s+cstat(c).rw;},0));
+  document.getElementById('hc').textContent=r.length;
+  document.getElementById('nm').disabled=S.month>=nm();
+  rsi();
+}
+
+// ── VIEW: HOME ────────────────────────────────────────────────────────────────
+function vHome(){
+  var r=S.recs.filter(function(x){return x.date.startsWith(S.month);});
+  if(!S.cards.length)return '<div class="empty"><div style="font-size:40px;margin-bottom:12px">💳</div><div style="font-weight:600">還沒有信用卡</div><button class="gbtn" onclick="sv(\'cards\')">前往新增</button></div>';
+  var h='<div class="sl">信用卡回饋進度</div>';
+  S.cards.forEach(function(card,i){
+    var st=cstat(card),io=st.prog>=1,iw=st.prog>.8;
+    var bc=io?'linear-gradient(90deg,'+C.danger+',#ff8f70)':iw?'linear-gradient(90deg,'+C.warn+',#fcd34d)':'linear-gradient(90deg,'+card.accent+'cc,'+card.accent+')';
+    h+='<div class="cb up" style="animation-delay:'+i*.07+'s">';
+    h+='<div class="ctop"><div>'+badge(card)+'<div class="cch">'+card.channelLabel+' · 每月'+card.resetDay+'號重置</div></div>';
+    h+='<div class="rw">'+ring(st.prog,64,card.accent)+'<div class="rpct" style="color:'+card.accent+'">'+Math.round(st.prog*100)+'%</div></div></div>';
+    h+='<div class="rrow"><div><div class="ramt" style="color:'+card.accent+'">'+fs(st.rw)+'</div><div class="rsub">已獲回饋 / 上限 '+fs(card.cap)+'</div></div>';
+    h+='<div><div class="rlbl" style="color:'+(io?C.danger:iw?C.warn:C.text2)+'">'+(io?'⚠ 已達上限':'還可刷 '+fs(st.rem))+'</div>';
+    h+='<div class="rlbl2">'+(io?'建議換其他卡':'尚可回饋 '+fs(st.rl))+'</div></div></div>';
+    h+='<div class="pt"><div class="pf" style="width:'+st.prog*100+'%;background:'+bc+'"></div></div>';
+    h+='<div class="cf"><span>已刷 '+fs(st.sp)+'</span><span>回饋率 '+card.rate+'%</span></div></div>';
+  });
+  var cb=S.cats.map(function(c){
+    return {emoji:c.emoji,name:c.name,id:c.id,tot:r.filter(function(x){return x.catId===c.id;}).reduce(function(s,x){return s+x.amount;},0)};
+  }).filter(function(c){return c.tot>0;}).sort(function(a,b){return b.tot-a.tot;});
+  if(cb.length){
+    h+='<div class="sl mt">消費類別分析</div><div class="cgrid">';
+    cb.forEach(function(c){
+      h+='<div class="ccell"><div style="font-size:22px">'+c.emoji+'</div><div style="font-size:10px;color:'+C.text3+';margin:4px 0">'+c.name+'</div><div style="font-size:13px;font-weight:700;color:'+C.text+'">'+fs(c.tot)+'</div></div>';
+    });
+    h+='</div>';
+  }
   return h;
 }
-function vHistory(){const r=S.recs.filter(x=>x.date.startsWith(S.month));const[y,m]=S.month.split('-');let h=`<div class="sl">消費紀錄 · ${y} 年 ${parseInt(m)} 月</div>`;if(!r.length)return h+`<div class="empty">這個月還沒有消費紀錄</div>`;[...r].sort((a,b)=>b.date.localeCompare(a.date)).forEach((x,i)=>{const card=S.cards.find(c=>c.id===x.cardId),cat=S.cats.find(c=>c.id===x.catId);if(!card)return;h+=`<div class="ri up" style="border-left-color:${card.accent};animation-delay:${i*.04}s"><div class="rl"><div class="rm"><span style="font-size:16px">${cat?.emoji||'📦'}</span><span style="font-size:11px;color:${C.text3}">${cat?.name||'其他'}</span>${badge(card,true)}<span class="rd">${fd(x.date)}</span></div>${x.note?`<div style="font-size:12px;color:${C.text3};padding-left:2px">${x.note}</div>`:''}</div><div><div style="font-size:17px;font-weight:800;color:${C.text};text-align:right">${f$(x.amount)}</div><div style="font-size:12px;font-weight:600;color:${card.accent};text-align:right">+${f$(x.amount*(card.rate/100))}</div></div><button style="background:none;border:none;color:${C.text3};font-size:14px;padding:4px 6px;border-radius:6px" onclick="cdel(${x.id})">✕</button></div>`;});return h;}
-function vCards(){let h=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="sl" style="margin-bottom:0">我的信用卡</div><button class="abtn" onclick="openCard(null)">＋ 新增</button></div>`;if(!S.cards.length)h+=`<div class="empty" style="padding:30px 20px"><div style="font-size:36px;margin-bottom:8px">💳</div><div>還沒有信用卡</div></div>`;S.cards.forEach((card,i)=>{const{sp,rw,r}=cstat(card),cy=CYOPTS.find(x=>x.id===card.cycle)?.l||'每月重置';h+=`<div class="cb up" style="animation-delay:${i*.07}s"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">${badge(card)}<button style="background:#e8eeff;border:1px solid ${C.border};border-radius:8px;padding:5px 14px;font-size:11px;color:${C.primary};font-weight:700" onclick="openCard('${card.id}')">編輯</button></div><div class="mg"><div class="mc"><div style="font-size:12px;font-weight:800;color:${C.text}">${card.rate}%</div><div style="font-size:9px;color:${C.text3};margin-top:3px">回饋率</div></div><div class="mc"><div style="font-size:12px;font-weight:800;color:${C.text}">${f$(card.cap)}</div><div style="font-size:9px;color:${C.text3};margin-top:3px">月回饋上限</div></div><div class="mc"><div style="font-size:12px;font-weight:800;color:${C.text}">${f$(ms(card))}</div><div style="font-size:9px;color:${C.text3};margin-top:3px">建議刷卡上限</div></div><div class="mc"><div style="font-size:12px;font-weight:800;color:${card.accent}">${f$(rw)}</div><div style="font-size:9px;color:${C.text3};margin-top:3px">本月已回饋</div></div></div><div class="mi"><div>📌 ${card.channelLabel}</div><div>🔄 ${cy} · 每月${card.resetDay}號重置 · 本月${r.length}筆 · 共${f$(sp)}</div>${card.note?`<div>💡 ${card.note}</div>`:''}</div></div>`;});h+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;margin-bottom:14px"><div class="sl" style="margin-bottom:0">消費類別</div><button style="background:linear-gradient(135deg,${C.pink},${C.primary});border:none;border-radius:10px;padding:8px 16px;color:white;font-size:12px;font-weight:700;box-shadow:0 2px 10px ${C.pink}44" onclick="openCat(null)">＋ 新增</button></div><div class="cat-mgrid">`;S.cats.forEach(c=>{h+=`<div class="camc"><div style="font-size:22px;margin-bottom:4px">${c.emoji}</div><div style="font-size:12px;font-weight:600;color:${C.text};margin-bottom:2px">${c.name}</div>${c.builtIn?`<div style="font-size:9px;color:${C.text3}">內建</div>`:`<button style="font-size:10px;color:${C.primary};background:none;border:none;font-weight:600" onclick="openCat('${c.id}')">編輯</button>`}</div>`;});h+=`</div><div class="sl">資料管理</div><div class="dcard"><div><div style="font-size:13px;font-weight:700;color:${C.text};margin-bottom:3px">自動存檔</div><div style="font-size:11px;color:${C.text3}">每次變更後自動儲存至本機</div></div><span id="si2" style="font-size:11px;color:${C.text3}"></span></div><button class="dbtn" style="border:1.5px solid ${C.accent};color:${C.accent};box-shadow:0 2px 8px ${C.accent}22" onclick="exp()"><span style="font-size:18px">⬇</span> 匯出備份（JSON）</button><button class="dbtn" style="border:1.5px solid ${C.primary};color:${C.primary}" onclick="document.getElementById('fimp').click()"><span style="font-size:18px">⬆</span> 匯入備份（JSON）</button><div style="font-size:11px;color:${C.text3};text-align:center;margin-bottom:16px;line-height:1.7;padding:0 16px">匯入時將覆蓋目前所有資料，請先匯出備份</div><button class="dbtn" style="border:1.5px solid rgba(244,63,94,.3);color:${C.danger};margin-bottom:0" onclick="clrRecs()">清除所有消費紀錄</button>`;return h;}
-function render(){rh();document.querySelectorAll('.nb').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));const el=document.getElementById('content');el.className='fade';if(S.view==='home')el.innerHTML=vHome();else if(S.view==='add')el.innerHTML=vAdd();else if(S.view==='history')el.innerHTML=vHistory();else el.innerHTML=vCards();setTimeout(()=>{const e=document.getElementById('si2');if(e){const t=localStorage.getItem(K.ls);e.textContent=t?`上次存檔 ${ft(new Date(t))}`:''}},0);}
-function sv(v){S.view=v;render();}
-function uf(k,v){
-  S.form[k]=v;
-  // 只有切換類別或卡片時才重繪（避免打字時鍵盤閃退）
-  if(S.view==='add' && (k==='catId'||k==='cardId')){
-    document.getElementById('content').innerHTML=vAdd();
+
+// ── VIEW: ADD ─────────────────────────────────────────────────────────────────
+function vAdd(){
+  if(!S.cards.length)return '<div class="empty">請先新增信用卡<br><button class="gbtn" onclick="sv(\'cards\')">前往新增</button></div>';
+  var amt=parseFloat(S.form.amt)||0;
+  var rk=amt>0?rank(amt,S.form.catId):[];
+  var best=rk.find(function(x){return !x.dis;});
+  var h='<div class="sl">新增消費紀錄</div>';
+
+  if(amt>0&&best){
+    var oth='';
+    if(rk.length>1){
+      oth='<div class="smo">';
+      rk.slice(1).forEach(function(x){
+        oth+='<div style="display:flex;align-items:center;gap:8px;margin-top:6px">'+badge(x.card,true)+'<span style="font-size:11px;color:'+(x.dis?C.text3:x.ob>0?C.warn:C.text2)+'">'+(x.dis?'⊘ 通路不符':x.reason)+'</span></div>';
+      });
+      oth+='</div>';
+    }
+    h+='<div class="smb" style="background:linear-gradient(135deg,'+best.card.accent+'18,'+best.card.accent+'08);border-color:'+best.card.accent+'55">';
+    h+='<div style="font-size:10px;color:'+C.text3+';letter-spacing:2px;margin-bottom:8px;font-weight:600">⚡ 智慧推薦</div>';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center">';
+    h+='<div>'+badge(best.card,true)+'<div style="font-size:12px;color:'+C.text2+';margin-top:6px">'+best.reason+'</div></div>';
+    h+='<button onclick="applyCard(\''+best.card.id+'\')" style="background:linear-gradient(135deg,'+best.card.accent+','+best.card.accent+'cc);border:none;border-radius:10px;padding:7px 14px;font-size:12px;font-weight:700;color:white">套用</button>';
+    h+='</div>'+oth+'</div>';
   }
-  // 金額變動時只更新智慧推薦區塊，不重繪整頁
-  if(S.view==='add' && k==='amt'){
-    const amt=+v;
-    const rk=amt>0?rank(amt,S.form.catId):[];
-    const best=rk.find(x=>!x.dis);
-    let bannerEl=document.getElementById('smart-banner');
-    if(!bannerEl){
-      // 插入到表單最前面
-      const wrap=document.getElementById('add-form-wrap');
-      if(wrap){
-        bannerEl=document.createElement('div');
-        bannerEl.id='smart-banner';
-        wrap.prepend(bannerEl);
+
+  h+='<div style="display:flex;flex-direction:column;gap:14px">';
+  // 金額欄位
+  h+='<div><label class="fl">消費金額（TWD）</label>';
+  h+='<div style="position:relative"><span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:'+C.text3+';font-size:20px">$</span>';
+  h+='<input id="f-amt" class="fi" type="number" placeholder="0" value="'+S.form.amt+'" style="padding-left:32px;font-size:24px'+(amt>0?';box-shadow:0 0 0 3px '+C.primary+'22':'')+'">';
+  h+='</div></div>';
+
+  // 類別
+  h+='<div><label class="fl">消費類別</label><div class="cr">';
+  S.cats.forEach(function(c){
+    h+='<button class="chip'+(S.form.catId===c.id?' on':'')+'" onclick="setCat(\''+c.id+'\')">'+c.emoji+' '+c.name+'</button>';
+  });
+  h+='</div></div>';
+
+  // 信用卡
+  h+='<div><label class="fl">選擇信用卡</label>';
+  S.cards.forEach(function(card){
+    var act=S.form.cardId===card.id;
+    var rec=rk.find(function(x){return x.card.id===card.id;});
+    var rl='';
+    if(rec&&!rec.dis)rl='<span style="font-size:12px;font-weight:700;color:'+(rec.ob>0?C.warn:C.ok)+'">'+(rec.ob>0?'超 '+fs(rec.ob):'+'+fs(rec.tr))+'</span>';
+    else if(rec&&rec.dis)rl='<span style="font-size:10px;color:'+C.text3+'">通路不符</span>';
+    h+='<button class="csel" onclick="setCard(\''+card.id+'\')" style="border-color:'+(act?card.accent:C.border)+';background:'+(act?card.color:'white')+';">';
+    h+='<div style="display:flex;align-items:center;gap:10px">';
+    h+='<div style="width:10px;height:10px;border-radius:50%;background:'+card.accent+';box-shadow:0 0 0 3px '+card.accent+'33"></div>';
+    h+='<div><div style="font-size:13px;font-weight:700;color:'+(act?card.accent:C.text)+'">'+card.name+'</div>';
+    h+='<div style="font-size:10px;color:'+(act?card.accent+'99':C.text3)+'">'+card.channelLabel+' · '+card.rate+'% 回饋</div></div></div>'+rl+'</button>';
+  });
+  h+='</div>';
+
+  // 備註 + 日期（使用 id，event listener 方式綁定，不用 oninput 重繪）
+  h+='<div style="display:flex;gap:10px">';
+  h+='<div style="display:flex;flex-direction:column;gap:6px;flex:1"><label class="fl">備註</label>';
+  h+='<input id="f-note" class="fi" type="text" placeholder="消費說明（可略）" value="'+escHtml(S.form.note)+'"></div>';
+  h+='<div style="display:flex;flex-direction:column;gap:6px"><label class="fl">日期</label>';
+  h+='<input id="f-date" class="fi" type="date" value="'+S.form.date+'" max="'+td()+'" style="width:128px"></div>';
+  h+='</div>';
+
+  h+='<button class="sbtn" onclick="addRec()">記帳</button></div>';
+  return h;
+}
+
+function escHtml(s){return s?s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''}
+
+// 切換類別時重繪記帳頁（不影響打字）
+function setCat(id){
+  // 先儲存目前輸入值
+  syncFormInputs();
+  S.form.catId=id;
+  document.getElementById('content').innerHTML=vAdd();
+  bindAddListeners();
+}
+function setCard(id){
+  syncFormInputs();
+  S.form.cardId=id;
+  document.getElementById('content').innerHTML=vAdd();
+  bindAddListeners();
+}
+function applyCard(id){
+  syncFormInputs();
+  S.form.cardId=id;
+  document.getElementById('content').innerHTML=vAdd();
+  bindAddListeners();
+}
+// 從 DOM 同步 form 值（解決重繪前資料遺失）
+function syncFormInputs(){
+  var a=document.getElementById('f-amt');if(a)S.form.amt=a.value;
+  var n=document.getElementById('f-note');if(n)S.form.note=n.value;
+  var d=document.getElementById('f-date');if(d)S.form.date=d.value;
+}
+// 綁定記帳頁 event listener（只處理金額，更新智慧推薦但不重繪整頁）
+function bindAddListeners(){
+  var amtEl=document.getElementById('f-amt');
+  if(amtEl){
+    amtEl.focus&&amtEl.addEventListener('input',function(){
+      S.form.amt=this.value;
+      var amt=parseFloat(this.value)||0;
+      var rk=amt>0?rank(amt,S.form.catId):[];
+      var best=rk.find(function(x){return !x.dis;});
+      // 只更新推薦區塊，不重繪整頁
+      var banner=document.getElementById('smart-banner');
+      if(banner){
+        if(amt>0&&best){
+          var oth='';
+          if(rk.length>1){
+            oth='<div class="smo">';
+            rk.slice(1).forEach(function(x){
+              oth+='<div style="display:flex;align-items:center;gap:8px;margin-top:6px">'+badge(x.card,true)+'<span style="font-size:11px;color:'+(x.dis?C.text3:x.ob>0?C.warn:C.text2)+'">'+(x.dis?'⊘ 通路不符':x.reason)+'</span></div>';
+            });
+            oth+='</div>';
+          }
+          banner.innerHTML='<div class="smb" style="background:linear-gradient(135deg,'+best.card.accent+'18,'+best.card.accent+'08);border-color:'+best.card.accent+'55"><div style="font-size:10px;color:'+C.text3+';letter-spacing:2px;margin-bottom:8px;font-weight:600">⚡ 智慧推薦</div><div style="display:flex;justify-content:space-between;align-items:center"><div>'+badge(best.card,true)+'<div style="font-size:12px;color:'+C.text2+';margin-top:6px">'+best.reason+'</div></div><button onclick="applyCard(\''+best.card.id+'\')" style="background:linear-gradient(135deg,'+best.card.accent+','+best.card.accent+'cc);border:none;border-radius:10px;padding:7px 14px;font-size:12px;font-weight:700;color:white">套用</button></div>'+oth+'</div>';
+        }else{
+          banner.innerHTML='';
+        }
       }
-    }
-    if(bannerEl){
-      if(amt>0&&best){
-        let oth='';
-        if(rk.length>1){oth=`<div class="smo">`+rk.slice(1).map(x=>`<div style="display:flex;align-items:center;gap:8px;margin-top:6px">${badge(x.card,true)}<span style="font-size:11px;color:${x.dis?C.text3:x.ob>0?C.warn:C.text2}">${x.dis?'⊘ 通路不符':x.reason}</span></div>`).join('')+`</div>`;}
-        bannerEl.innerHTML=`<div class="smb" style="background:linear-gradient(135deg,${best.card.accent}18,${best.card.accent}08);border-color:${best.card.accent}55"><div style="font-size:10px;color:${C.text3};letter-spacing:2px;margin-bottom:8px;font-weight:600">⚡ 智慧推薦</div><div style="display:flex;justify-content:space-between;align-items:center"><div>${badge(best.card,true)}<div style="font-size:12px;color:${C.text2};margin-top:6px">${best.reason}</div></div><button onclick="uf('cardId','${best.card.id}')" style="background:linear-gradient(135deg,${best.card.accent},${best.card.accent}cc);border:none;border-radius:10px;padding:7px 14px;font-size:12px;font-weight:700;color:white">套用</button></div>${oth}</div>`;
-      } else {
-        bannerEl.innerHTML='';
-      }
-    }
-    // 更新金額輸入框的 box-shadow（不重繪）
-    const fa=document.getElementById('fa');
-    if(fa)fa.style.boxShadow=amt>0?`0 0 0 3px ${C.primary}22`:'';
+      // 更新 box-shadow
+      this.style.boxShadow=amt>0?'0 0 0 3px '+C.primary+'22':'';
+    });
   }
 }
-function addRec(){const amt=+S.form.amt;if(!amt||isNaN(amt)||amt<=0){toast('請輸入正確金額','err');return;}if(!S.form.cardId){toast('請選擇信用卡','err');return;}S.recs.unshift({...S.form,id:Date.now(),amount:amt,catId:S.form.catId});S.form={...S.form,amt:'',note:'',date:td()};save();toast('記帳成功 ✓');render();}
-function clrRecs(){if(confirm('確定清除所有消費紀錄？')){S.recs=[];save();toast('已清除','warn');render();}}
-function cdel(id){const ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:950;display:flex;align-items:center;justify-content:center';ov.innerHTML=`<div class="conf"><div style="font-size:15px;font-weight:700;color:${C.text};margin-bottom:6px">刪除這筆紀錄？</div><div style="font-size:13px;color:${C.text2};margin-bottom:20px">此動作無法復原</div><div style="display:flex;gap:10px"><button onclick="doDel(${id})" style="flex:1;padding:12px 0;border:none;border-radius:12px;background:${C.danger};color:white;font-size:14px;font-weight:700">刪除</button><button onclick="this.closest('.ov-wrap').remove()" style="flex:1;padding:12px 0;border:1px solid ${C.border};border-radius:12px;background:white;color:${C.text2};font-size:14px;font-weight:700">取消</button></div></div>`;ov.className='ov-wrap';ov.querySelector('button:last-child').onclick=()=>ov.remove();ov.onclick=e=>{if(e.target===ov)ov.remove();};document.body.appendChild(ov);}
-function doDel(id){S.recs=S.recs.filter(x=>x.id!==id);document.querySelectorAll('.ov-wrap').forEach(e=>e.remove());save();toast('已刪除','warn');render();}
-document.getElementById('pm').onclick=()=>{const[y,m]=S.month.split('-').map(Number),d=new Date(y,m-2,1);S.month=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;render();};
-document.getElementById('nm').onclick=()=>{const[y,m]=S.month.split('-').map(Number),d=new Date(y,m,1),k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;if(k<=nm()){S.month=k;render();}};
-document.querySelectorAll('.nb').forEach(b=>b.onclick=()=>sv(b.dataset.v));
-function openCard(cardId){const ex=cardId?S.cards.find(c=>c.id===cardId):null,isNew=!ex;let f=ex?{...ex}:{name:'',bank:'',color:BPS[0],accent:APS[0],rate:'',cap:'',cycle:'monthly',resetDay:'1',channels:['all'],note:''};const ov=document.createElement('div');ov.className='ov ov-wrap';ov.onclick=e=>{if(e.target===ov)ov.remove();};function rs(){const rN=+f.rate,cN=+f.cap,pv=rN>0&&cN>0?f$(cN/(rN/100)):'—';const hnt=rN>0&&cN>0?`<div class="hb">✦ 刷超過 <b>${pv}</b> 就不划算</div>`:'';const cych=CYOPTS.map(c=>`<button class="chip${f.cycle===c.id?' on':''}" onclick="ce_cy('${c.id}')">${c.l}</button>`).join('');const chch=CHOPTS.map(c=>`<button class="chip${f.channels.includes(c.id)?' on':''}" onclick="ce_ch('${c.id}')">${c.l}</button>`).join('');const bgd=BPS.map(c=>`<button class="cdot${f.color===c?' sel':''}" style="background:${c}" onclick="ce_s('color','${c}')"></button>`).join('');const acd=APS.map(c=>`<button class="cdot${f.accent===c?' sel':''}" style="background:${c}" onclick="ce_s('accent','${c}')"></button>`).join('');ov.innerHTML=`<div class="sh"><div class="shd"><div class="shdb"></div></div><div class="shh"><span class="sht">${isNew?'✦ 新增信用卡':'✎ 編輯卡片'}</span><button class="shc" onclick="document.querySelector('.ov-wrap').remove()">✕</button></div><div style="margin:14px 16px 0;padding:16px 18px;border-radius:16px;background:${f.color};border:1.5px solid ${f.accent}55;box-shadow:0 4px 20px ${f.accent}33;flex-shrink:0"><div style="font-size:16px;font-weight:800;color:${f.accent}">${f.name||'卡片名稱'}</div><div style="font-size:12px;color:${f.accent}99;margin-top:2px">${f.bank||'銀行名稱'}</div><div style="display:flex;gap:18px;margin-top:10px"><span style="font-size:13px;color:${f.accent}">${f.rate?f.rate+'%':'— %'}</span><span style="font-size:11px;color:${f.accent}88">上限 ${cN>0?f$(cN):'—'}</span><span style="font-size:11px;color:${f.accent}66">建議刷 ${pv}</span></div></div><div class="shb"><div class="sl">基本資訊</div><div style="margin-bottom:10px"><label class="fl" style="font-size:11px">卡片名稱 *</label><input class="sinp" id="cen" placeholder="例：永豐大戶卡" value="${f.name}" oninput="ce_s('name',this.value)"><div class="ferr" id="cen-e"></div></div><div style="display:flex;gap:10px;margin-bottom:10px"><div style="flex:1"><label class="fl" style="font-size:11px">銀行名稱</label><input class="sinp" placeholder="永豐銀行" value="${f.bank}" oninput="ce_s('bank',this.value)"></div><div style="flex:1"><label class="fl" style="font-size:11px">備註</label><input class="sinp" placeholder="特殊說明（可略）" value="${f.note}" oninput="ce_s('note',this.value)"></div></div><div class="sl mt">回饋設定</div><div style="display:flex;gap:10px;margin-bottom:10px"><div style="flex:1"><label class="fl" style="font-size:11px">回饋率 % *</label><div style="position:relative"><input class="sinp" type="number" step="0.1" min="0" max="100" placeholder="2.5" value="${f.rate}" style="padding-right:28px" oninput="ce_s('rate',this.value)"><span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:${C.text3};font-size:13px">%</span></div><div class="ferr" id="cer-e"></div></div><div style="flex:1"><label class="fl" style="font-size:11px">回饋上限 TWD *</label><div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:${C.text3};font-size:13px">$</span><input class="sinp" type="number" min="0" placeholder="400" value="${f.cap}" style="padding-left:22px" oninput="ce_s('cap',this.value)"></div><div class="ferr" id="cec-e"></div></div></div>${hnt}<div class="sl mt">回饋週期</div><div class="cr" style="margin-bottom:12px">${cych}</div><div style="margin-bottom:10px"><label class="fl" style="font-size:11px">重置日（每月幾號）</label><div style="display:flex;align-items:center;gap:10px"><input class="sinp" type="number" min="1" max="28" placeholder="1" value="${f.resetDay}" style="width:72px" oninput="ce_s('resetDay',this.value)"><span style="font-size:12px;color:${C.text3}">號（建議填帳單結帳日）</span></div><div class="ferr" id="cerd-e"></div></div><div class="sl mt">適用通路</div><div class="cr" style="margin-bottom:16px">${chch}</div><div class="sl mt">卡片顏色</div><div style="display:flex;gap:16px"><div style="flex:1"><div style="font-size:10px;color:${C.text3};margin-bottom:6px">背景色</div><div style="display:flex;flex-wrap:wrap;gap:5px">${bgd}<input type="color" value="${f.color}" onchange="ce_s('color',this.value)"></div></div><div style="flex:1"><div style="font-size:10px;color:${C.text3};margin-bottom:6px">強調色</div><div style="display:flex;flex-wrap:wrap;gap:5px">${acd}<input type="color" value="${f.accent}" onchange="ce_s('accent',this.value)"></div></div></div><div style="height:16px"></div></div><div class="shf">${!isNew?`<button class="delbtn" onclick="delCard('${ex.id}')">刪除</button>`:''}<button class="cancbtn" onclick="document.querySelector('.ov-wrap').remove()">取消</button><button class="savbtn" onclick="subCard()">儲存</button></div></div>`;ov.querySelector('.sh').onclick=e=>e.stopPropagation();}
-window.ce_s=(k,v)=>{
-  f[k]=v;
-  // 只有影響預覽外觀的欄位才重繪（顏色、回饋率、上限）
-  if(k==='color'||k==='accent'||k==='rate'||k==='cap'){rs();}
-  // 名字/銀行/備註只更新預覽文字，不重繪
-  if(k==='name'){const el=ov.querySelector('[data-preview="name"]');if(el)el.textContent=v||'卡片名稱';}
-  if(k==='bank'){const el=ov.querySelector('[data-preview="bank"]');if(el)el.textContent=v||'銀行名稱';}
-};window.ce_cy=v=>{f.cycle=v;rs();};window.ce_ch=ch=>{if(ch==='all'){f.channels=['all'];rs();return;}const cur=f.channels.filter(c=>c!=='all'),next=cur.includes(ch)?cur.filter(c=>c!==ch):[...cur,ch];f.channels=next.length===0?['all']:next;rs();};
-window.subCard=()=>{const e={};if(!f.name.trim())e.n='請輸入卡片名稱';if(!f.rate||isNaN(+f.rate)||+f.rate<=0||+f.rate>100)e.r='回饋率需介於 0–100%';if(!f.cap||isNaN(+f.cap)||+f.cap<=0)e.c='請輸入正確上限';if(!f.resetDay||+f.resetDay<1||+f.resetDay>28)e.d='需在 1–28 之間';if(Object.keys(e).length){const ne=document.getElementById('cen-e'),re=document.getElementById('cer-e'),ce=document.getElementById('cec-e'),de=document.getElementById('cerd-e');if(ne)ne.textContent=e.n||'';if(re)re.textContent=e.r||'';if(ce)ce.textContent=e.c||'';if(de)de.textContent=e.d||'';return;}const chs=f.channels.length?f.channels:['all'];const cl=chs.includes('all')?'所有通路':chs.map(ch=>CHOPTS.find(o=>o.id===ch)?.l||ch).join('、');const saved={...f,id:f.id||uid(),rate:+f.rate,cap:+f.cap,resetDay:+f.resetDay,channels:chs,channelLabel:cl};delete saved._t;const idx=S.cards.findIndex(c=>c.id===saved.id);if(idx>=0)S.cards[idx]=saved;else S.cards.push(saved);if(!S.form.cardId&&S.cards.length)S.form.cardId=S.cards[0].id;ov.remove();save();toast('卡片已儲存 ✓');render();};
-window.delCard=id=>{S.cards=S.cards.filter(c=>c.id!==id);S.recs=S.recs.filter(r=>r.cardId!==id);ov.remove();save();toast('卡片已刪除','warn');render();};
-document.body.appendChild(ov);rs();}
-function openCat(catId){const ex=catId?S.cats.find(c=>c.id===catId):null,isNew=!ex;let f=ex?{...ex}:{emoji:'📦',name:'',channels:['all']};let showEm=false;const ov=document.createElement('div');ov.className='ov ov-wrap';ov.onclick=e=>{if(e.target===ov)ov.remove();};function rs(){const cch=CHOPTS.map(c=>`<button class="chip${f.channels.includes(c.id)?' on':''}" onclick="cat_ch('${c.id}')">${c.l}</button>`).join('');const ep=showEm?`<div class="emp">`+EMOJIS.map(e=>`<button class="emo${f.emoji===e?' sel':''}" onclick="cat_em('${e}')">${e}</button>`).join('')+`</div>`:'';ov.innerHTML=`<div class="sh" style="max-height:75vh"><div class="shd"><div class="shdb"></div></div><div style="padding:8px 20px 28px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px"><span class="sht">${isNew?'＋ 新增類別':'✎ 編輯類別'}</span><button class="shc" onclick="document.querySelector('.ov-wrap').remove()">✕</button></div><div style="display:flex;gap:10px;margin-bottom:14px"><div style="position:relative"><button class="emb" onclick="cat_tem()">${f.emoji}</button>${ep}</div><div style="flex:1;display:flex;flex-direction:column;gap:6px"><label class="fl" style="font-size:11px">類別名稱 *</label><input class="sinp${f._e?' err':''}" placeholder="例：百貨公司" value="${f.name}" oninput="f.name=this.value;f._e=\'\';">${f._e?`<div class="ferr">${f._e}</div>`:''}</div></div><div style="background:#e8eeff;border-radius:12px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:8px"><span style="font-size:20px">${f.emoji}</span><span style="font-size:14px;font-weight:700;color:${C.text}">${f.name||'類別名稱'}</span><span style="font-size:11px;color:${C.text3};margin-left:auto">預覽</span></div><label class="fl" style="font-size:11px;display:block;margin-bottom:8px">適用通路</label><div class="cr" style="margin-bottom:20px">${cch}</div><div style="display:flex;gap:10px">${!isNew&&!ex?.builtIn?`<button class="delbtn" onclick="delCat('${ex.id}')">刪除</button>`:''}<button class="cancbtn" onclick="document.querySelector('.ov-wrap').remove()">取消</button><button class="savbtn" onclick="subCat()">儲存</button></div></div></div>`;ov.querySelector('.sh').onclick=e=>e.stopPropagation();}
-window.cat_tem=()=>{showEm=!showEm;rs();};window.cat_em=e=>{f.emoji=e;showEm=false;rs();};window.cat_n=v=>{f.name=v;f._e='';rs();};window.cat_ch=ch=>{if(ch==='all'){f.channels=['all'];rs();return;}const cur=f.channels.filter(c=>c!=='all'),next=cur.includes(ch)?cur.filter(c=>c!==ch):[...cur,ch];f.channels=next.length===0?['all']:next;rs();};
-window.subCat=()=>{if(!f.name.trim()){f._e='請輸入類別名稱';rs();return;}const saved={id:f.id||uid(),emoji:f.emoji,name:f.name.trim(),channels:f.channels,builtIn:false};const idx=S.cats.findIndex(c=>c.id===saved.id);if(idx>=0)S.cats[idx]=saved;else S.cats.push(saved);ov.remove();save();toast('類別已儲存 ✓');render();};
-window.delCat=id=>{S.cats=S.cats.filter(c=>c.id!==id);ov.remove();save();toast('類別已刪除','warn');render();};
-document.body.appendChild(ov);rs();}
-render();save();
+
+// ── VIEW: HISTORY ─────────────────────────────────────────────────────────────
+function vHistory(){
+  var r=S.recs.filter(function(x){return x.date.startsWith(S.month);});
+  var parts=S.month.split('-');
+  var h='<div class="sl">消費紀錄 · '+parts[0]+' 年 '+parseInt(parts[1])+' 月</div>';
+  if(!r.length)return h+'<div class="empty">這個月還沒有消費紀錄</div>';
+  var sorted=r.slice().sort(function(a,b){return b.date.localeCompare(a.date);});
+  sorted.forEach(function(x,i){
+    var card=S.cards.find(function(c){return c.id===x.cardId;});
+    var cat=S.cats.find(function(c){return c.id===x.catId;});
+    if(!card)return;
+    h+='<div class="ri up" style="border-left-color:'+card.accent+';animation-delay:'+i*.04+'s">';
+    h+='<div class="rl"><div class="rm"><span style="font-size:16px">'+(cat?cat.emoji:'📦')+'</span>';
+    h+='<span style="font-size:11px;color:'+C.text3+'">'+(cat?cat.name:'其他')+'</span>'+badge(card,true);
+    h+='<span class="rd">'+fd(x.date)+'</span></div>';
+    if(x.note)h+='<div style="font-size:12px;color:'+C.text3+';padding-left:2px">'+escHtml(x.note)+'</div>';
+    h+='</div><div><div style="font-size:17px;font-weight:800;color:'+C.text+';text-align:right">'+fs(x.amount)+'</div>';
+    h+='<div style="font-size:12px;font-weight:600;color:'+card.accent+';text-align:right">+'+fs(x.amount*(card.rate/100))+'</div></div>';
+    h+='<button style="background:none;border:none;color:'+C.text3+';font-size:14px;padding:4px 6px;border-radius:6px" onclick="cdel('+x.id+')">✕</button></div>';
+  });
+  return h;
+}
+
+// ── VIEW: CARDS ───────────────────────────────────────────────────────────────
+function vCards(){
+  var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">';
+  h+='<div class="sl" style="margin-bottom:0">我的信用卡</div>';
+  h+='<button class="abtn" onclick="openCard(null)">＋ 新增</button></div>';
+  if(!S.cards.length)h+='<div class="empty" style="padding:30px 20px"><div style="font-size:36px;margin-bottom:8px">💳</div><div>還沒有信用卡</div></div>';
+  S.cards.forEach(function(card,i){
+    var st=cstat(card);
+    var cy=(CYOPTS.find(function(x){return x.id===card.cycle;})||{l:'每月重置'}).l;
+    h+='<div class="cb up" style="animation-delay:'+i*.07+'s">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'+badge(card);
+    h+='<button style="background:#e8eeff;border:1px solid '+C.border+';border-radius:8px;padding:5px 14px;font-size:11px;color:'+C.primary+';font-weight:700" onclick="openCard(\''+card.id+'\')">編輯</button></div>';
+    h+='<div class="mg">';
+    h+='<div class="mc"><div style="font-size:12px;font-weight:800;color:'+C.text+'">'+card.rate+'%</div><div style="font-size:9px;color:'+C.text3+';margin-top:3px">回饋率</div></div>';
+    h+='<div class="mc"><div style="font-size:12px;font-weight:800;color:'+C.text+'">'+fs(card.cap)+'</div><div style="font-size:9px;color:'+C.text3+';margin-top:3px">月回饋上限</div></div>';
+    h+='<div class="mc"><div style="font-size:12px;font-weight:800;color:'+C.text+'">'+fs(msp(card))+'</div><div style="font-size:9px;color:'+C.text3+';margin-top:3px">建議刷卡上限</div></div>';
+    h+='<div class="mc"><div style="font-size:12px;font-weight:800;color:'+card.accent+'">'+fs(st.rw)+'</div><div style="font-size:9px;color:'+C.text3+';margin-top:3px">本月已回饋</div></div>';
+    h+='</div><div class="mi"><div>📌 '+card.channelLabel+'</div>';
+    h+='<div>🔄 '+cy+' · 每月'+card.resetDay+'號重置 · 本月'+st.r.length+'筆 · 共'+fs(st.sp)+'</div>';
+    if(card.note)h+='<div>💡 '+escHtml(card.note)+'</div>';
+    h+='</div></div>';
+  });
+  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;margin-bottom:14px">';
+  h+='<div class="sl" style="margin-bottom:0">消費類別</div>';
+  h+='<button style="background:linear-gradient(135deg,'+C.pink+','+C.primary+');border:none;border-radius:10px;padding:8px 16px;color:white;font-size:12px;font-weight:700;box-shadow:0 2px 10px '+C.pink+'44" onclick="openCat(null)">＋ 新增</button></div>';
+  h+='<div class="cat-mgrid">';
+  S.cats.forEach(function(c){
+    h+='<div class="camc"><div style="font-size:22px;margin-bottom:4px">'+c.emoji+'</div>';
+    h+='<div style="font-size:12px;font-weight:600;color:'+C.text+';margin-bottom:2px">'+c.name+'</div>';
+    h+=c.builtIn?'<div style="font-size:9px;color:'+C.text3+'">內建</div>':'<button style="font-size:10px;color:'+C.primary+';background:none;border:none;font-weight:600" onclick="openCat(\''+c.id+'\')">編輯</button>';
+    h+='</div>';
+  });
+  h+='</div>';
+  h+='<div class="sl">資料管理</div>';
+  h+='<div class="dcard"><div><div style="font-size:13px;font-weight:700;color:'+C.text+';margin-bottom:3px">自動存檔</div>';
+  h+='<div style="font-size:11px;color:'+C.text3+'">每次變更後自動儲存至本機</div></div>';
+  h+='<span id="si2" style="font-size:11px;color:'+C.text3+'"></span></div>';
+  h+='<button class="dbtn" style="border:1.5px solid '+C.accent+';color:'+C.accent+';box-shadow:0 2px 8px '+C.accent+'22" onclick="exp()"><span style="font-size:18px">⬇</span> 匯出備份（JSON）</button>';
+  h+='<button class="dbtn" style="border:1.5px solid '+C.primary+';color:'+C.primary+'" onclick="document.getElementById(\'fimp\').click()"><span style="font-size:18px">⬆</span> 匯入備份（JSON）</button>';
+  h+='<div style="font-size:11px;color:'+C.text3+';text-align:center;margin-bottom:16px;line-height:1.7;padding:0 16px">匯入時將覆蓋目前所有資料，請先匯出備份</div>';
+  h+='<button class="dbtn" style="border:1.5px solid rgba(244,63,94,.3);color:'+C.danger+';margin-bottom:0" onclick="clrRecs()">清除所有消費紀錄</button>';
+  return h;
+}
+
+// ── MAIN RENDER ───────────────────────────────────────────────────────────────
+function render(){
+  rh();
+  document.querySelectorAll('.nb').forEach(function(b){b.classList.toggle('on',b.dataset.v===S.view);});
+  var el=document.getElementById('content');
+  el.className='fade';
+  if(S.view==='home')el.innerHTML=vHome();
+  else if(S.view==='add'){el.innerHTML=vAdd();bindAddListeners();}
+  else if(S.view==='history')el.innerHTML=vHistory();
+  else el.innerHTML=vCards();
+  setTimeout(function(){
+    var e=document.getElementById('si2');
+    if(e){var t=localStorage.getItem(K.ls);e.textContent=t?'上次存檔 '+ft(new Date(t)):'';}
+  },0);
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────────
+function sv(v){S.view=v;render();}
+
+function addRec(){
+  syncFormInputs();
+  var amt=parseFloat(S.form.amt)||0;
+  if(!amt||amt<=0){toast('請輸入正確金額','err');return;}
+  if(!S.form.cardId){toast('請選擇信用卡','err');return;}
+  S.recs.unshift({cardId:S.form.cardId,amount:amt,catId:S.form.catId,note:S.form.note,date:S.form.date,id:Date.now()});
+  S.form.amt='';S.form.note='';S.form.date=td();
+  save();toast('記帳成功 ✓');render();
+}
+
+function clrRecs(){
+  if(confirm('確定清除所有消費紀錄？')){S.recs=[];save();toast('已清除','warn');render();}
+}
+
+function cdel(id){
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:950;display:flex;align-items:center;justify-content:center';
+  ov.className='ov-wrap';
+  var conf=document.createElement('div');conf.className='conf';
+  conf.innerHTML='<div style="font-size:15px;font-weight:700;color:'+C.text+';margin-bottom:6px">刪除這筆紀錄？</div>'+
+    '<div style="font-size:13px;color:'+C.text2+';margin-bottom:20px">此動作無法復原</div>'+
+    '<div style="display:flex;gap:10px">'+
+    '<button id="del-confirm" style="flex:1;padding:12px 0;border:none;border-radius:12px;background:'+C.danger+';color:white;font-size:14px;font-weight:700">刪除</button>'+
+    '<button id="del-cancel" style="flex:1;padding:12px 0;border:1px solid '+C.border+';border-radius:12px;background:white;color:'+C.text2+';font-size:14px;font-weight:700">取消</button></div>';
+  ov.appendChild(conf);
+  document.body.appendChild(ov);
+  document.getElementById('del-confirm').onclick=function(){S.recs=S.recs.filter(function(x){return x.id!==id;});ov.remove();save();toast('已刪除','warn');render();};
+  document.getElementById('del-cancel').onclick=function(){ov.remove();};
+  ov.onclick=function(e){if(e.target===ov)ov.remove();};
+}
+
+// ── MONTH NAV ─────────────────────────────────────────────────────────────────
+document.getElementById('pm').onclick=function(){
+  var p=S.month.split('-').map(Number),d=new Date(p[0],p[1]-2,1);
+  S.month=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');render();
+};
+document.getElementById('nm').onclick=function(){
+  var p=S.month.split('-').map(Number),d=new Date(p[0],p[1],1);
+  var k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  if(k<=nm()){S.month=k;render();}
+};
+document.querySelectorAll('.nb').forEach(function(b){b.onclick=function(){sv(b.dataset.v);};});
+
+// ── CARD EDITOR ───────────────────────────────────────────────────────────────
+function openCard(cardId){
+  var ex=cardId?S.cards.find(function(c){return c.id===cardId;}):null;
+  var isNew=!ex;
+  var f=ex?Object.assign({},ex):{name:'',bank:'',color:BPS[0],accent:APS[0],rate:'',cap:'',cycle:'monthly',resetDay:'1',channels:['all'],note:''};
+  var ov=document.createElement('div');ov.className='ov ov-wrap';
+  ov.onclick=function(e){if(e.target===ov)ov.remove();};
+
+  function rs(){
+    var rN=parseFloat(f.rate)||0,cN=parseFloat(f.cap)||0;
+    var pv=rN>0&&cN>0?fs(cN/(rN/100)):'—';
+    var hnt=rN>0&&cN>0?'<div class="hb">✦ 刷超過 <b>'+pv+'</b> 就不划算</div>':'';
+    var cych=CYOPTS.map(function(c){return '<button class="chip'+(f.cycle===c.id?' on':'')+'" onclick="ce_cy(\''+c.id+'\')">'+c.l+'</button>';}).join('');
+    var chch=CHOPTS.map(function(c){return '<button class="chip'+(f.channels.indexOf(c.id)>=0?' on':'')+'" onclick="ce_ch(\''+c.id+'\')">'+c.l+'</button>';}).join('');
+    var bgd=BPS.map(function(c){return '<button class="cdot'+(f.color===c?' sel':'')+'" style="background:'+c+'" onclick="ce_s(\'color\',\''+c+'\')"></button>';}).join('');
+    var acd=APS.map(function(c){return '<button class="cdot'+(f.accent===c?' sel':'')+'" style="background:'+c+'" onclick="ce_s(\'accent\',\''+c+'\')"></button>';}).join('');
+    var inner='<div class="sh"><div class="shd"><div class="shdb"></div></div>';
+    inner+='<div class="shh"><span class="sht">'+(isNew?'✦ 新增信用卡':'✎ 編輯卡片')+'</span>';
+    inner+='<button class="shc" onclick="document.querySelector(\'.ov-wrap\').remove()">✕</button></div>';
+    inner+='<div style="margin:14px 16px 0;padding:16px 18px;border-radius:16px;background:'+f.color+';border:1.5px solid '+f.accent+'55;box-shadow:0 4px 20px '+f.accent+'33;flex-shrink:0">';
+    inner+='<div id="prev-name" style="font-size:16px;font-weight:800;color:'+f.accent+'">'+(f.name||'卡片名稱')+'</div>';
+    inner+='<div id="prev-bank" style="font-size:12px;color:'+f.accent+'99;margin-top:2px">'+(f.bank||'銀行名稱')+'</div>';
+    inner+='<div style="display:flex;gap:18px;margin-top:10px"><span style="font-size:13px;color:'+f.accent+'">'+(f.rate?f.rate+'%':'— %')+'</span>';
+    inner+='<span style="font-size:11px;color:'+f.accent+'88">上限 '+(cN>0?fs(cN):'—')+'</span>';
+    inner+='<span style="font-size:11px;color:'+f.accent+'66">建議刷 '+pv+'</span></div></div>';
+    inner+='<div class="shb">';
+    inner+='<div class="sl">基本資訊</div>';
+    inner+='<div style="margin-bottom:10px"><label class="fl" style="font-size:11px">卡片名稱 *</label>';
+    inner+='<input class="sinp" id="cen" placeholder="例：永豐大戶卡" value="'+escHtml(f.name)+'"><div class="ferr" id="cen-e"></div></div>';
+    inner+='<div style="display:flex;gap:10px;margin-bottom:10px">';
+    inner+='<div style="flex:1"><label class="fl" style="font-size:11px">銀行名稱</label><input class="sinp" id="cbnk" placeholder="永豐銀行" value="'+escHtml(f.bank)+'"></div>';
+    inner+='<div style="flex:1"><label class="fl" style="font-size:11px">備註</label><input class="sinp" id="cnote" placeholder="特殊說明（可略）" value="'+escHtml(f.note)+'"></div></div>';
+    inner+='<div class="sl mt">回饋設定</div>';
+    inner+='<div style="display:flex;gap:10px;margin-bottom:10px">';
+    inner+='<div style="flex:1"><label class="fl" style="font-size:11px">回饋率 % *</label>';
+    inner+='<div style="position:relative"><input class="sinp" id="crate" type="number" step="0.1" min="0" max="100" placeholder="2.5" value="'+f.rate+'" style="padding-right:28px">';
+    inner+='<span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:'+C.text3+';font-size:13px">%</span></div>';
+    inner+='<div class="ferr" id="cer-e"></div></div>';
+    inner+='<div style="flex:1"><label class="fl" style="font-size:11px">回饋上限 TWD *</label>';
+    inner+='<div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:'+C.text3+';font-size:13px">$</span>';
+    inner+='<input class="sinp" id="ccap" type="number" min="0" placeholder="400" value="'+f.cap+'" style="padding-left:22px"></div>';
+    inner+='<div class="ferr" id="cec-e"></div></div></div>';
+    inner+=hnt;
+    inner+='<div class="sl mt">回饋週期</div><div class="cr" style="margin-bottom:12px">'+cych+'</div>';
+    inner+='<div style="margin-bottom:10px"><label class="fl" style="font-size:11px">重置日（每月幾號）</label>';
+    inner+='<div style="display:flex;align-items:center;gap:10px">';
+    inner+='<input class="sinp" id="crday" type="number" min="1" max="28" placeholder="1" value="'+f.resetDay+'" style="width:72px">';
+    inner+='<span style="font-size:12px;color:'+C.text3+'">號（建議填帳單結帳日）</span></div>';
+    inner+='<div class="ferr" id="cerd-e"></div></div>';
+    inner+='<div class="sl mt">適用通路</div><div class="cr" style="margin-bottom:16px">'+chch+'</div>';
+    inner+='<div class="sl mt">卡片顏色</div><div style="display:flex;gap:16px">';
+    inner+='<div style="flex:1"><div style="font-size:10px;color:'+C.text3+';margin-bottom:6px">背景色</div>';
+    inner+='<div style="display:flex;flex-wrap:wrap;gap:5px">'+bgd+'<input type="color" value="'+f.color+'" onchange="ce_s(\'color\',this.value)"></div></div>';
+    inner+='<div style="flex:1"><div style="font-size:10px;color:'+C.text3+';margin-bottom:6px">強調色</div>';
+    inner+='<div style="display:flex;flex-wrap:wrap;gap:5px">'+acd+'<input type="color" value="'+f.accent+'" onchange="ce_s(\'accent\',this.value)"></div></div></div>';
+    inner+='<div style="height:16px"></div></div>';
+    inner+='<div class="shf">'+(isNew?'':'<button class="delbtn" onclick="ce_del(\''+ex.id+'\')">刪除</button>');
+    inner+='<button class="cancbtn" onclick="document.querySelector(\'.ov-wrap\').remove()">取消</button>';
+    inner+='<button class="savbtn" onclick="ce_save()">儲存</button></div></div>';
+    ov.innerHTML=inner;
+    ov.querySelector('.sh').onclick=function(e){e.stopPropagation();};
+    // 綁定 event listeners（不重繪）
+    var cenEl=document.getElementById('cen');
+    if(cenEl)cenEl.addEventListener('input',function(){
+      f.name=this.value;
+      var pn=document.getElementById('prev-name');if(pn)pn.textContent=this.value||'卡片名稱';
+    });
+    var cbnkEl=document.getElementById('cbnk');
+    if(cbnkEl)cbnkEl.addEventListener('input',function(){
+      f.bank=this.value;
+      var pb=document.getElementById('prev-bank');if(pb)pb.textContent=this.value||'銀行名稱';
+    });
+    var cnoteEl=document.getElementById('cnote');
+    if(cnoteEl)cnoteEl.addEventListener('input',function(){f.note=this.value;});
+    var crateEl=document.getElementById('crate');
+    if(crateEl)crateEl.addEventListener('input',function(){f.rate=this.value;rs();});
+    var ccapEl=document.getElementById('ccap');
+    if(ccapEl)ccapEl.addEventListener('input',function(){f.cap=this.value;rs();});
+    var crdayEl=document.getElementById('crday');
+    if(crdayEl)crdayEl.addEventListener('input',function(){f.resetDay=this.value;});
+  }
+
+  window.ce_s=function(k,v){f[k]=v;rs();};
+  window.ce_cy=function(v){f.cycle=v;rs();};
+  window.ce_ch=function(ch){
+    if(ch==='all'){f.channels=['all'];rs();return;}
+    var cur=f.channels.filter(function(c){return c!=='all';});
+    var idx=cur.indexOf(ch);
+    if(idx>=0)cur.splice(idx,1);else cur.push(ch);
+    f.channels=cur.length===0?['all']:cur;rs();
+  };
+  window.ce_save=function(){
+    // 同步輸入值
+    var cenEl=document.getElementById('cen');if(cenEl)f.name=cenEl.value;
+    var cbnkEl=document.getElementById('cbnk');if(cbnkEl)f.bank=cbnkEl.value;
+    var cnoteEl=document.getElementById('cnote');if(cnoteEl)f.note=cnoteEl.value;
+    var crateEl=document.getElementById('crate');if(crateEl)f.rate=crateEl.value;
+    var ccapEl=document.getElementById('ccap');if(ccapEl)f.cap=ccapEl.value;
+    var crdayEl=document.getElementById('crday');if(crdayEl)f.resetDay=crdayEl.value;
+    var e={};
+    if(!f.name.trim())e.n='請輸入卡片名稱';
+    if(!f.rate||isNaN(+f.rate)||+f.rate<=0||+f.rate>100)e.r='回饋率需介於 0–100%';
+    if(!f.cap||isNaN(+f.cap)||+f.cap<=0)e.c='請輸入正確上限';
+    if(!f.resetDay||+f.resetDay<1||+f.resetDay>28)e.d='需在 1–28 之間';
+    if(Object.keys(e).length){
+      var ne=document.getElementById('cen-e'),re=document.getElementById('cer-e'),ce=document.getElementById('cec-e'),de=document.getElementById('cerd-e');
+      if(ne)ne.textContent=e.n||'';if(re)re.textContent=e.r||'';if(ce)ce.textContent=e.c||'';if(de)de.textContent=e.d||'';
+      return;
+    }
+    var chs=f.channels.length?f.channels:['all'];
+    var cl=chs.indexOf('all')>=0?'所有通路':chs.map(function(ch){var o=CHOPTS.find(function(x){return x.id===ch;});return o?o.l:ch;}).join('、');
+    var saved=Object.assign({},f,{id:f.id||uid(),rate:+f.rate,cap:+f.cap,resetDay:+f.resetDay,channels:chs,channelLabel:cl});
+    var idx=S.cards.findIndex(function(c){return c.id===saved.id;});
+    if(idx>=0)S.cards[idx]=saved;else S.cards.push(saved);
+    if(!S.form.cardId&&S.cards.length)S.form.cardId=S.cards[0].id;
+    ov.remove();save();toast('卡片已儲存 ✓');render();
+  };
+  window.ce_del=function(id){
+    S.cards=S.cards.filter(function(c){return c.id!==id;});
+    S.recs=S.recs.filter(function(r){return r.cardId!==id;});
+    ov.remove();save();toast('卡片已刪除','warn');render();
+  };
+  document.body.appendChild(ov);rs();
+}
+
+// ── CATEGORY EDITOR ───────────────────────────────────────────────────────────
+function openCat(catId){
+  var ex=catId?S.cats.find(function(c){return c.id===catId;}):null;
+  var isNew=!ex;
+  var f=ex?Object.assign({},ex):{emoji:'📦',name:'',channels:['all']};
+  var showEm=false;
+  var ov=document.createElement('div');ov.className='ov ov-wrap';
+  ov.onclick=function(e){if(e.target===ov)ov.remove();};
+
+  function rs(){
+    var cch=CHOPTS.map(function(c){return '<button class="chip'+(f.channels.indexOf(c.id)>=0?' on':'')+'" onclick="cat_ch(\''+c.id+'\')">'+c.l+'</button>';}).join('');
+    var ep=showEm?'<div class="emp">'+EMOJIS.map(function(e){return '<button class="emo'+(f.emoji===e?' sel':'')+'" onclick="cat_em(\''+e+'\')">'+e+'</button>';}).join('')+'</div>':'';
+    var inner='<div class="sh" style="max-height:75vh"><div class="shd"><div class="shdb"></div></div>';
+    inner+='<div style="padding:8px 20px 28px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">';
+    inner+='<span class="sht">'+(isNew?'＋ 新增類別':'✎ 編輯類別')+'</span>';
+    inner+='<button class="shc" onclick="document.querySelector(\'.ov-wrap\').remove()">✕</button></div>';
+    inner+='<div style="display:flex;gap:10px;margin-bottom:14px"><div style="position:relative">';
+    inner+='<button class="emb" onclick="cat_tem()">'+f.emoji+'</button>'+ep+'</div>';
+    inner+='<div style="flex:1;display:flex;flex-direction:column;gap:6px"><label class="fl" style="font-size:11px">類別名稱 *</label>';
+    inner+='<input class="sinp'+(f._e?' err':'')+'" id="cat-name" placeholder="例：百貨公司" value="'+escHtml(f.name)+'">';
+    inner+=(f._e?'<div class="ferr">'+f._e+'</div>':'')+'</div></div>';
+    inner+='<div style="background:#e8eeff;border-radius:12px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:8px">';
+    inner+='<span style="font-size:20px">'+f.emoji+'</span>';
+    inner+='<span id="cat-prev-name" style="font-size:14px;font-weight:700;color:'+C.text+'">'+(f.name||'類別名稱')+'</span>';
+    inner+='<span style="font-size:11px;color:'+C.text3+';margin-left:auto">預覽</span></div>';
+    inner+='<label class="fl" style="font-size:11px;display:block;margin-bottom:8px">適用通路</label>';
+    inner+='<div class="cr" style="margin-bottom:20px">'+cch+'</div>';
+    inner+='<div style="display:flex;gap:10px">';
+    inner+=(!isNew&&!ex.builtIn?'<button class="delbtn" onclick="cat_del(\''+ex.id+'\')">刪除</button>':'');
+    inner+='<button class="cancbtn" onclick="document.querySelector(\'.ov-wrap\').remove()">取消</button>';
+    inner+='<button class="savbtn" onclick="cat_save()">儲存</button></div></div></div>';
+    ov.innerHTML=inner;
+    ov.querySelector('.sh').onclick=function(e){e.stopPropagation();};
+    // 綁定 name input（不重繪）
+    var nameEl=document.getElementById('cat-name');
+    if(nameEl)nameEl.addEventListener('input',function(){
+      f.name=this.value;f._e='';
+      var pv=document.getElementById('cat-prev-name');if(pv)pv.textContent=this.value||'類別名稱';
+    });
+  }
+
+  window.cat_tem=function(){showEm=!showEm;rs();};
+  window.cat_em=function(e){f.emoji=e;showEm=false;rs();};
+  window.cat_ch=function(ch){
+    if(ch==='all'){f.channels=['all'];rs();return;}
+    var cur=f.channels.filter(function(c){return c!=='all';});
+    var idx=cur.indexOf(ch);
+    if(idx>=0)cur.splice(idx,1);else cur.push(ch);
+    f.channels=cur.length===0?['all']:cur;rs();
+  };
+  window.cat_save=function(){
+    var nameEl=document.getElementById('cat-name');if(nameEl)f.name=nameEl.value;
+    if(!f.name.trim()){f._e='請輸入類別名稱';rs();return;}
+    var saved={id:f.id||uid(),emoji:f.emoji,name:f.name.trim(),channels:f.channels,builtIn:false};
+    var idx=S.cats.findIndex(function(c){return c.id===saved.id;});
+    if(idx>=0)S.cats[idx]=saved;else S.cats.push(saved);
+    ov.remove();save();toast('類別已儲存 ✓');render();
+  };
+  window.cat_del=function(id){
+    S.cats=S.cats.filter(function(c){return c.id!==id;});
+    ov.remove();save();toast('類別已刪除','warn');render();
+  };
+  document.body.appendChild(ov);rs();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+render();
+save();
 </script>
+
 </body>
 </html>

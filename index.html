@@ -257,7 +257,8 @@ function cstat(card){
 function rank(amt,catId){
   var cat=S.cats.find(function(c){return c.id===catId;});
   return S.cards.map(function(card){
-    var ok=card.channels.some(function(ch){return cat&&cat.channels&&cat.channels.indexOf(ch)>=0;});
+    // 如果卡片通路是 all，或類別通路包含 all，視為符合
+    var ok=card.channels.indexOf('all')>=0||(cat&&cat.channels&&cat.channels.some(function(ch){return card.channels.indexOf(ch)>=0;}));
     if(!ok)return{card:card,tr:0,ob:0,score:-999,reason:'通路不符',dis:true};
     var st=cstat(card),ns=st.sp+amt;
     var nr=Math.min(ns*(card.rate/100),card.cap),tr=nr-st.rw,ob=Math.max(ns-msp(card),0);
@@ -310,7 +311,7 @@ function vHome(){
     var st=cstat(card),io=st.prog>=1,iw=st.prog>.8;
     var bc=io?'linear-gradient(90deg,'+C.danger+',#ff8f70)':iw?'linear-gradient(90deg,'+C.warn+',#fcd34d)':'linear-gradient(90deg,'+card.accent+'cc,'+card.accent+')';
     h+='<div class="cb up" style="animation-delay:'+i*.07+'s">';
-    h+='<div class="ctop"><div>'+badge(card)+'<div class="cch">'+card.channelLabel+' · 每月'+card.resetDay+'號重置</div></div>';
+    h+='<div class="ctop"><div>'+badge(card)+'<div class="cch">'+card.channelLabel+' · 每月'+(+card.resetDay>=31?'月底':card.resetDay+'號')+'重置</div></div>';
     h+='<div class="rw">'+ring(st.prog,64,card.accent)+'<div class="rpct" style="color:'+card.accent+'">'+Math.round(st.prog*100)+'%</div></div></div>';
     h+='<div class="rrow"><div><div class="ramt" style="color:'+card.accent+'">'+fs(st.rw)+'</div><div class="rsub">已獲回饋 / 上限 '+fs(card.cap)+'</div></div>';
     h+='<div><div class="rlbl" style="color:'+(io?C.danger:iw?C.warn:C.text2)+'">'+(io?'⚠ 已達上限':'還可刷 '+fs(st.rem))+'</div>';
@@ -499,7 +500,8 @@ function vCards(){
     h+='<div class="mc"><div style="font-size:12px;font-weight:800;color:'+C.text+'">'+fs(msp(card))+'</div><div style="font-size:9px;color:'+C.text3+';margin-top:3px">建議刷卡上限</div></div>';
     h+='<div class="mc"><div style="font-size:12px;font-weight:800;color:'+card.accent+'">'+fs(st.rw)+'</div><div style="font-size:9px;color:'+C.text3+';margin-top:3px">本月已回饋</div></div>';
     h+='</div><div class="mi"><div>📌 '+card.channelLabel+'</div>';
-    h+='<div>🔄 '+cy+' · 每月'+card.resetDay+'號重置 · 本月'+st.r.length+'筆 · 共'+fs(st.sp)+'</div>';
+    var rdayStr=+card.resetDay>=31?'月底':card.resetDay+'號';
+    h+='<div>🔄 '+cy+' · 每月'+rdayStr+'重置 · 本月'+st.r.length+'筆 · 共'+fs(st.sp)+'</div>';
     if(card.note)h+='<div>💡 '+escHtml(card.note)+'</div>';
     h+='</div></div>';
   });
@@ -591,95 +593,181 @@ document.querySelectorAll('.nb').forEach(function(b){b.onclick=function(){sv(b.d
 function openCard(cardId){
   var ex=cardId?S.cards.find(function(c){return c.id===cardId;}):null;
   var isNew=!ex;
-  var f=ex?Object.assign({},ex):{name:'',bank:'',color:BPS[0],accent:APS[0],rate:'',cap:'',cycle:'monthly',resetDay:'1',channels:['all'],note:''};
+  var f=ex?Object.assign({},ex,{channels:ex.channels.slice()}):{name:'',bank:'',color:BPS[0],accent:APS[0],rate:'',cap:'',cycle:'monthly',resetDay:'1',channels:['all'],note:''};
+  // 自訂通路（儲存在 card 的 customChannels 欄位）
+  if(!f.customChannels)f.customChannels=[];
   var ov=document.createElement('div');ov.className='ov ov-wrap';
   ov.onclick=function(e){if(e.target===ov)ov.remove();};
 
-  function rs(){
+  // 更新預覽卡片（不重繪整個 sheet）
+  function updatePreview(){
     var rN=parseFloat(f.rate)||0,cN=parseFloat(f.cap)||0;
     var pv=rN>0&&cN>0?fs(cN/(rN/100)):'—';
-    var hnt=rN>0&&cN>0?'<div class="hb">✦ 刷超過 <b>'+pv+'</b> 就不划算</div>':'';
-    var cych=CYOPTS.map(function(c){return '<button class="chip'+(f.cycle===c.id?' on':'')+'" onclick="ce_cy(\''+c.id+'\')">'+c.l+'</button>';}).join('');
-    var chch=CHOPTS.map(function(c){return '<button class="chip'+(f.channels.indexOf(c.id)>=0?' on':'')+'" onclick="ce_ch(\''+c.id+'\')">'+c.l+'</button>';}).join('');
-    var bgd=BPS.map(function(c){return '<button class="cdot'+(f.color===c?' sel':'')+'" style="background:'+c+'" onclick="ce_s(\'color\',\''+c+'\')"></button>';}).join('');
-    var acd=APS.map(function(c){return '<button class="cdot'+(f.accent===c?' sel':'')+'" style="background:'+c+'" onclick="ce_s(\'accent\',\''+c+'\')"></button>';}).join('');
-    var inner='<div class="sh"><div class="shd"><div class="shdb"></div></div>';
-    inner+='<div class="shh"><span class="sht">'+(isNew?'✦ 新增信用卡':'✎ 編輯卡片')+'</span>';
-    inner+='<button class="shc" onclick="document.querySelector(\'.ov-wrap\').remove()">✕</button></div>';
-    inner+='<div style="margin:14px 16px 0;padding:16px 18px;border-radius:16px;background:'+f.color+';border:1.5px solid '+f.accent+'55;box-shadow:0 4px 20px '+f.accent+'33;flex-shrink:0">';
-    inner+='<div id="prev-name" style="font-size:16px;font-weight:800;color:'+f.accent+'">'+(f.name||'卡片名稱')+'</div>';
-    inner+='<div id="prev-bank" style="font-size:12px;color:'+f.accent+'99;margin-top:2px">'+(f.bank||'銀行名稱')+'</div>';
-    inner+='<div style="display:flex;gap:18px;margin-top:10px"><span style="font-size:13px;color:'+f.accent+'">'+(f.rate?f.rate+'%':'— %')+'</span>';
-    inner+='<span style="font-size:11px;color:'+f.accent+'88">上限 '+(cN>0?fs(cN):'—')+'</span>';
-    inner+='<span style="font-size:11px;color:'+f.accent+'66">建議刷 '+pv+'</span></div></div>';
-    inner+='<div class="shb">';
-    inner+='<div class="sl">基本資訊</div>';
-    inner+='<div style="margin-bottom:10px"><label class="fl" style="font-size:11px">卡片名稱 *</label>';
-    inner+='<input class="sinp" id="cen" placeholder="例：永豐大戶卡" value="'+escHtml(f.name)+'"><div class="ferr" id="cen-e"></div></div>';
-    inner+='<div style="display:flex;gap:10px;margin-bottom:10px">';
-    inner+='<div style="flex:1"><label class="fl" style="font-size:11px">銀行名稱</label><input class="sinp" id="cbnk" placeholder="永豐銀行" value="'+escHtml(f.bank)+'"></div>';
-    inner+='<div style="flex:1"><label class="fl" style="font-size:11px">備註</label><input class="sinp" id="cnote" placeholder="特殊說明（可略）" value="'+escHtml(f.note)+'"></div></div>';
-    inner+='<div class="sl mt">回饋設定</div>';
-    inner+='<div style="display:flex;gap:10px;margin-bottom:10px">';
-    inner+='<div style="flex:1"><label class="fl" style="font-size:11px">回饋率 % *</label>';
-    inner+='<div style="position:relative"><input class="sinp" id="crate" type="number" step="0.1" min="0" max="100" placeholder="2.5" value="'+f.rate+'" style="padding-right:28px">';
-    inner+='<span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:'+C.text3+';font-size:13px">%</span></div>';
-    inner+='<div class="ferr" id="cer-e"></div></div>';
-    inner+='<div style="flex:1"><label class="fl" style="font-size:11px">回饋上限 TWD *</label>';
-    inner+='<div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:'+C.text3+';font-size:13px">$</span>';
-    inner+='<input class="sinp" id="ccap" type="number" min="0" placeholder="400" value="'+f.cap+'" style="padding-left:22px"></div>';
-    inner+='<div class="ferr" id="cec-e"></div></div></div>';
-    inner+=hnt;
-    inner+='<div class="sl mt">回饋週期</div><div class="cr" style="margin-bottom:12px">'+cych+'</div>';
-    inner+='<div style="margin-bottom:10px"><label class="fl" style="font-size:11px">重置日（每月幾號）</label>';
-    inner+='<div style="display:flex;align-items:center;gap:10px">';
-    inner+='<input class="sinp" id="crday" type="number" min="1" max="28" placeholder="1" value="'+f.resetDay+'" style="width:72px">';
-    inner+='<span style="font-size:12px;color:'+C.text3+'">號（建議填帳單結帳日）</span></div>';
-    inner+='<div class="ferr" id="cerd-e"></div></div>';
-    inner+='<div class="sl mt">適用通路</div><div class="cr" style="margin-bottom:16px">'+chch+'</div>';
-    inner+='<div class="sl mt">卡片顏色</div><div style="display:flex;gap:16px">';
-    inner+='<div style="flex:1"><div style="font-size:10px;color:'+C.text3+';margin-bottom:6px">背景色</div>';
-    inner+='<div style="display:flex;flex-wrap:wrap;gap:5px">'+bgd+'<input type="color" value="'+f.color+'" onchange="ce_s(\'color\',this.value)"></div></div>';
-    inner+='<div style="flex:1"><div style="font-size:10px;color:'+C.text3+';margin-bottom:6px">強調色</div>';
-    inner+='<div style="display:flex;flex-wrap:wrap;gap:5px">'+acd+'<input type="color" value="'+f.accent+'" onchange="ce_s(\'accent\',this.value)"></div></div></div>';
-    inner+='<div style="height:16px"></div></div>';
-    inner+='<div class="shf">'+(isNew?'':'<button class="delbtn" onclick="ce_del(\''+ex.id+'\')">刪除</button>');
-    inner+='<button class="cancbtn" onclick="document.querySelector(\'.ov-wrap\').remove()">取消</button>';
-    inner+='<button class="savbtn" onclick="ce_save()">儲存</button></div></div>';
-    ov.innerHTML=inner;
-    ov.querySelector('.sh').onclick=function(e){e.stopPropagation();};
-    // 綁定 event listeners（不重繪）
-    var cenEl=document.getElementById('cen');
-    if(cenEl)cenEl.addEventListener('input',function(){
-      f.name=this.value;
-      var pn=document.getElementById('prev-name');if(pn)pn.textContent=this.value||'卡片名稱';
-    });
-    var cbnkEl=document.getElementById('cbnk');
-    if(cbnkEl)cbnkEl.addEventListener('input',function(){
-      f.bank=this.value;
-      var pb=document.getElementById('prev-bank');if(pb)pb.textContent=this.value||'銀行名稱';
-    });
-    var cnoteEl=document.getElementById('cnote');
-    if(cnoteEl)cnoteEl.addEventListener('input',function(){f.note=this.value;});
-    var crateEl=document.getElementById('crate');
-    if(crateEl)crateEl.addEventListener('input',function(){f.rate=this.value;rs();});
-    var ccapEl=document.getElementById('ccap');
-    if(ccapEl)ccapEl.addEventListener('input',function(){f.cap=this.value;rs();});
-    var crdayEl=document.getElementById('crday');
-    if(crdayEl)crdayEl.addEventListener('input',function(){f.resetDay=this.value;});
+    var pn=document.getElementById('prev-name');if(pn)pn.textContent=f.name||'卡片名稱';
+    var pb=document.getElementById('prev-bank');if(pb)pb.textContent=f.bank||'銀行名稱';
+    var pr=document.getElementById('prev-rate');if(pr)pr.textContent=f.rate?f.rate+'%':'— %';
+    var pc=document.getElementById('prev-cap');if(pc)pc.textContent=cN>0?'上限 '+fs(cN):'上限 —';
+    var pp=document.getElementById('prev-max');if(pp)pp.textContent='建議刷 '+pv;
+    var ph=document.getElementById('prev-hint');
+    if(ph)ph.innerHTML=rN>0&&cN>0?'<div class="hb">✦ 刷超過 <b>'+pv+'</b> 就不划算</div>':'';
   }
 
-  window.ce_s=function(k,v){f[k]=v;rs();};
-  window.ce_cy=function(v){f.cycle=v;rs();};
+  // 取得所有通路選項（內建 + 自訂）
+  function getAllChannels(){
+    var all=CHOPTS.slice();
+    f.customChannels.forEach(function(c){
+      if(!all.find(function(x){return x.id===c.id;}))all.push(c);
+    });
+    return all;
+  }
+
+  // 只重繪需要重繪的部分（通路、週期、顏色）
+  function redrawChips(){
+    var allCh=getAllChannels();
+    var chch=allCh.map(function(c){
+      return '<button class="chip'+(f.channels.indexOf(c.id)>=0?' on':'')+'" onclick="ce_ch(\''+c.id+'\')">'+c.l+'</button>';
+    }).join('');
+    chch+='<button onclick="ce_addCh()" style="padding:7px 14px;border-radius:20px;border:1.5px dashed #d0d8ff;background:white;color:#8b93c8;font-size:12px;cursor:pointer">＋ 自訂</button>';
+    var el=document.getElementById('ch-chips');if(el)el.innerHTML=chch;
+    var cych=CYOPTS.map(function(c){return '<button class="chip'+(f.cycle===c.id?' on':'')+'" onclick="ce_cy(\''+c.id+'\')">'+c.l+'</button>';}).join('');
+    var cy=document.getElementById('cy-chips');if(cy)cy.innerHTML=cych;
+    var bgd=BPS.map(function(c){return '<button class="cdot'+(f.color===c?' sel':'')+'" style="background:'+c+'" onclick="ce_s(\'color\',\''+c+'\')"></button>';}).join('');
+    bgd+='<input type="color" value="'+f.color+'" onchange="ce_s(\'color\',this.value)">';
+    var acd=APS.map(function(c){return '<button class="cdot'+(f.accent===c?' sel':'')+'" style="background:'+c+'" onclick="ce_s(\'accent\',\''+c+'\')"></button>';}).join('');
+    acd+='<input type="color" value="'+f.accent+'" onchange="ce_s(\'accent\',this.value)">';
+    var bge=document.getElementById('bg-dots');if(bge)bge.innerHTML=bgd;
+    var ace=document.getElementById('ac-dots');if(ace)ace.innerHTML=acd;
+    // 更新預覽卡片背景色
+    var prev=document.getElementById('card-preview');
+    if(prev){prev.style.background=f.color;prev.style.borderColor=f.accent+'55';prev.style.boxShadow='0 4px 20px '+f.accent+'33';}
+    var pnEl=document.getElementById('prev-name');if(pnEl)pnEl.style.color=f.accent;
+    var pbEl=document.getElementById('prev-bank');if(pbEl)pbEl.style.color=f.accent+'99';
+    var prEl=document.getElementById('prev-rate');if(prEl)prEl.style.color=f.accent;
+    var pcEl=document.getElementById('prev-cap');if(pcEl)pcEl.style.color=f.accent+'88';
+    var ppEl=document.getElementById('prev-max');if(ppEl)ppEl.style.color=f.accent+'66';
+  }
+
+  // 重置日選項：1-28 + 月底(29/30/31)
+  var rdayOpts='';
+  for(var d=1;d<=28;d++)rdayOpts+='<option value="'+d+'"'+(+f.resetDay===d?' selected':'')+'>'+d+' 號</option>';
+  rdayOpts+='<option value="29"'+(+f.resetDay===29?' selected':'')+'>29 號</option>';
+  rdayOpts+='<option value="30"'+(+f.resetDay===30?' selected':'')+'>30 號</option>';
+  rdayOpts+='<option value="31"'+(+f.resetDay===31?' selected':'')+'>月底最後一天</option>';
+
+  // 通路 HTML
+  var allCh=getAllChannels();
+  var chch=allCh.map(function(c){
+    return '<button class="chip'+(f.channels.indexOf(c.id)>=0?' on':'')+'" onclick="ce_ch(\''+c.id+'\')">'+c.l+'</button>';
+  }).join('');
+  chch+='<button onclick="ce_addCh()" style="padding:7px 14px;border-radius:20px;border:1.5px dashed #d0d8ff;background:white;color:#8b93c8;font-size:12px;cursor:pointer">＋ 自訂</button>';
+
+  var cych=CYOPTS.map(function(c){return '<button class="chip'+(f.cycle===c.id?' on':'')+'" onclick="ce_cy(\''+c.id+'\')">'+c.l+'</button>';}).join('');
+  var bgd=BPS.map(function(c){return '<button class="cdot'+(f.color===c?' sel':'')+'" style="background:'+c+'" onclick="ce_s(\'color\',\''+c+'\')"></button>';}).join('');
+  bgd+='<input type="color" value="'+f.color+'" onchange="ce_s(\'color\',this.value)">';
+  var acd=APS.map(function(c){return '<button class="cdot'+(f.accent===c?' sel':'')+'" style="background:'+c+'" onclick="ce_s(\'accent\',\''+c+'\')"></button>';}).join('');
+  acd+='<input type="color" value="'+f.accent+'" onchange="ce_s(\'accent\',this.value)">';
+
+  var rN=parseFloat(f.rate)||0,cN=parseFloat(f.cap)||0,pv=rN>0&&cN>0?fs(cN/(rN/100)):'—';
+
+  var inner='<div class="sh"><div class="shd"><div class="shdb"></div></div>';
+  inner+='<div class="shh"><span class="sht">'+(isNew?'✦ 新增信用卡':'✎ 編輯卡片')+'</span>';
+  inner+='<button class="shc" onclick="document.querySelector(\'.ov-wrap\').remove()">✕</button></div>';
+  inner+='<div id="card-preview" style="margin:14px 16px 0;padding:16px 18px;border-radius:16px;background:'+f.color+';border:1.5px solid '+f.accent+'55;box-shadow:0 4px 20px '+f.accent+'33;flex-shrink:0">';
+  inner+='<div id="prev-name" style="font-size:16px;font-weight:800;color:'+f.accent+'">'+(f.name||'卡片名稱')+'</div>';
+  inner+='<div id="prev-bank" style="font-size:12px;color:'+f.accent+'99;margin-top:2px">'+(f.bank||'銀行名稱')+'</div>';
+  inner+='<div style="display:flex;gap:18px;margin-top:10px">';
+  inner+='<span id="prev-rate" style="font-size:13px;color:'+f.accent+'">'+(f.rate?f.rate+'%':'— %')+'</span>';
+  inner+='<span id="prev-cap" style="font-size:11px;color:'+f.accent+'88">'+(cN>0?'上限 '+fs(cN):'上限 —')+'</span>';
+  inner+='<span id="prev-max" style="font-size:11px;color:'+f.accent+'66">建議刷 '+pv+'</span></div></div>';
+  inner+='<div class="shb">';
+  inner+='<div class="sl">基本資訊</div>';
+  inner+='<div style="margin-bottom:10px"><label class="fl" style="font-size:11px">卡片名稱 *</label>';
+  inner+='<input class="sinp" id="cen" placeholder="例：永豐大戶卡" value="'+escHtml(f.name)+'"><div class="ferr" id="cen-e"></div></div>';
+  inner+='<div style="display:flex;gap:10px;margin-bottom:10px">';
+  inner+='<div style="flex:1"><label class="fl" style="font-size:11px">銀行名稱</label><input class="sinp" id="cbnk" placeholder="永豐銀行" value="'+escHtml(f.bank)+'"></div>';
+  inner+='<div style="flex:1"><label class="fl" style="font-size:11px">備註</label><input class="sinp" id="cnote" placeholder="特殊說明（可略）" value="'+escHtml(f.note)+'"></div></div>';
+  inner+='<div class="sl mt">回饋設定</div>';
+  inner+='<div style="display:flex;gap:10px;margin-bottom:10px">';
+  inner+='<div style="flex:1"><label class="fl" style="font-size:11px">回饋率 % *</label>';
+  inner+='<div style="position:relative"><input class="sinp" id="crate" type="number" step="0.1" min="0" max="100" placeholder="2.5" value="'+f.rate+'" style="padding-right:28px">';
+  inner+='<span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:'+C.text3+';font-size:13px">%</span></div>';
+  inner+='<div class="ferr" id="cer-e"></div></div>';
+  inner+='<div style="flex:1"><label class="fl" style="font-size:11px">回饋上限 TWD *</label>';
+  inner+='<div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:'+C.text3+';font-size:13px">$</span>';
+  inner+='<input class="sinp" id="ccap" type="number" min="0" placeholder="400" value="'+f.cap+'" style="padding-left:22px"></div>';
+  inner+='<div class="ferr" id="cec-e"></div></div></div>';
+  inner+='<div id="prev-hint">'+(rN>0&&cN>0?'<div class="hb">✦ 刷超過 <b>'+pv+'</b> 就不划算</div>':'')+'</div>';
+  inner+='<div class="sl mt">回饋週期</div><div class="cr" id="cy-chips" style="margin-bottom:12px">'+cych+'</div>';
+  inner+='<div style="margin-bottom:10px"><label class="fl" style="font-size:11px">重置日</label>';
+  inner+='<select id="crday" class="sinp" style="width:auto;padding:11px 14px">';
+  inner+=rdayOpts;
+  inner+='</select></div>';
+  inner+='<div class="ferr" id="cerd-e"></div>';
+  inner+='<div class="sl mt">適用通路</div><div class="cr" id="ch-chips" style="margin-bottom:16px">'+chch+'</div>';
+  inner+='<div class="sl mt">卡片顏色</div><div style="display:flex;gap:16px">';
+  inner+='<div style="flex:1"><div style="font-size:10px;color:'+C.text3+';margin-bottom:6px">背景色</div>';
+  inner+='<div id="bg-dots" style="display:flex;flex-wrap:wrap;gap:5px">'+bgd+'</div></div>';
+  inner+='<div style="flex:1"><div style="font-size:10px;color:'+C.text3+';margin-bottom:6px">強調色</div>';
+  inner+='<div id="ac-dots" style="display:flex;flex-wrap:wrap;gap:5px">'+acd+'</div></div></div>';
+  inner+='<div style="height:16px"></div></div>';
+  inner+='<div class="shf">'+(isNew?'':'<button class="delbtn" onclick="ce_del(\''+ex.id+'\')">刪除</button>');
+  inner+='<button class="cancbtn" onclick="document.querySelector(\'.ov-wrap\').remove()">取消</button>';
+  inner+='<button class="savbtn" onclick="ce_save()">儲存</button></div></div>';
+  ov.innerHTML=inner;
+  ov.querySelector('.sh').onclick=function(e){e.stopPropagation();};
+
+  // 綁定所有 event listeners（完全不觸發重繪）
+  var cenEl=document.getElementById('cen');
+  if(cenEl)cenEl.addEventListener('input',function(){f.name=this.value;updatePreview();});
+  var cbnkEl=document.getElementById('cbnk');
+  if(cbnkEl)cbnkEl.addEventListener('input',function(){f.bank=this.value;updatePreview();});
+  var cnoteEl=document.getElementById('cnote');
+  if(cnoteEl)cnoteEl.addEventListener('input',function(){f.note=this.value;});
+  var crateEl=document.getElementById('crate');
+  if(crateEl)crateEl.addEventListener('input',function(){f.rate=this.value;updatePreview();});
+  var ccapEl=document.getElementById('ccap');
+  if(ccapEl)ccapEl.addEventListener('input',function(){f.cap=this.value;updatePreview();});
+  var crdayEl=document.getElementById('crday');
+  if(crdayEl)crdayEl.addEventListener('change',function(){f.resetDay=this.value;});
+
+  window.ce_s=function(k,v){f[k]=v;redrawChips();updatePreview();};
+  window.ce_cy=function(v){f.cycle=v;redrawChips();};
   window.ce_ch=function(ch){
-    if(ch==='all'){f.channels=['all'];rs();return;}
+    if(ch==='all'){f.channels=['all'];redrawChips();return;}
     var cur=f.channels.filter(function(c){return c!=='all';});
     var idx=cur.indexOf(ch);
     if(idx>=0)cur.splice(idx,1);else cur.push(ch);
-    f.channels=cur.length===0?['all']:cur;rs();
+    f.channels=cur.length===0?['all']:cur;redrawChips();
+  };
+  window.ce_addCh=function(){
+    // 用內建 input 替代 prompt（prompt 在部分環境被封鎖）
+    var existing=document.getElementById('custom-ch-input-row');
+    if(existing){existing.remove();return;}
+    var row=document.createElement('div');
+    row.id='custom-ch-input-row';
+    row.style.cssText='display:flex;gap:8px;align-items:center;margin-top:8px;width:100%';
+    row.innerHTML='<input id="custom-ch-val" class="sinp" placeholder="輸入通路名稱，如：全聯" style="flex:1;padding:9px 12px;font-size:13px">'+
+      '<button onclick="ce_confirmCh()" style="padding:9px 14px;border-radius:10px;border:none;background:#7c6cfc;color:white;font-size:12px;font-weight:700;white-space:nowrap">確認</button>'+
+      '<button onclick="document.getElementById(\'custom-ch-input-row\').remove()" style="padding:9px 10px;border-radius:10px;border:1px solid #d0d8ff;background:white;color:#8b93c8;font-size:12px">✕</button>';
+    var chips=document.getElementById('ch-chips');
+    if(chips){chips.parentNode.insertBefore(row,chips.nextSibling);}
+    setTimeout(function(){var inp=document.getElementById('custom-ch-val');if(inp)inp.focus();},100);
+  };
+  window.ce_confirmCh=function(){
+    var inp=document.getElementById('custom-ch-val');
+    if(!inp||!inp.value.trim()){toast('請輸入通路名稱','err');return;}
+    var name=inp.value.trim();
+    var id='custom_'+uid();
+    var ch={id:id,l:name};
+    f.customChannels.push(ch);
+    f.channels=f.channels.filter(function(c){return c!=='all';});
+    f.channels.push(id);
+    if(!f.channels.length)f.channels=['all'];
+    var row=document.getElementById('custom-ch-input-row');if(row)row.remove();
+    redrawChips();
   };
   window.ce_save=function(){
-    // 同步輸入值
+    // 讀取所有輸入值
     var cenEl=document.getElementById('cen');if(cenEl)f.name=cenEl.value;
     var cbnkEl=document.getElementById('cbnk');if(cbnkEl)f.bank=cbnkEl.value;
     var cnoteEl=document.getElementById('cnote');if(cnoteEl)f.note=cnoteEl.value;
@@ -687,18 +775,26 @@ function openCard(cardId){
     var ccapEl=document.getElementById('ccap');if(ccapEl)f.cap=ccapEl.value;
     var crdayEl=document.getElementById('crday');if(crdayEl)f.resetDay=crdayEl.value;
     var e={};
-    if(!f.name.trim())e.n='請輸入卡片名稱';
+    if(!f.name||!f.name.trim())e.n='請輸入卡片名稱';
     if(!f.rate||isNaN(+f.rate)||+f.rate<=0||+f.rate>100)e.r='回饋率需介於 0–100%';
     if(!f.cap||isNaN(+f.cap)||+f.cap<=0)e.c='請輸入正確上限';
-    if(!f.resetDay||+f.resetDay<1||+f.resetDay>28)e.d='需在 1–28 之間';
     if(Object.keys(e).length){
-      var ne=document.getElementById('cen-e'),re=document.getElementById('cer-e'),ce=document.getElementById('cec-e'),de=document.getElementById('cerd-e');
-      if(ne)ne.textContent=e.n||'';if(re)re.textContent=e.r||'';if(ce)ce.textContent=e.c||'';if(de)de.textContent=e.d||'';
+      var ne=document.getElementById('cen-e'),re=document.getElementById('cer-e'),ce=document.getElementById('cec-e');
+      if(ne)ne.textContent=e.n||'';if(re)re.textContent=e.r||'';if(ce)ce.textContent=e.c||'';
       return;
     }
     var chs=f.channels.length?f.channels:['all'];
-    var cl=chs.indexOf('all')>=0?'所有通路':chs.map(function(ch){var o=CHOPTS.find(function(x){return x.id===ch;});return o?o.l:ch;}).join('、');
-    var saved=Object.assign({},f,{id:f.id||uid(),rate:+f.rate,cap:+f.cap,resetDay:+f.resetDay,channels:chs,channelLabel:cl});
+    var allCh=getAllChannels();
+    var cl;
+    if(chs.indexOf('all')>=0){cl='所有通路';}
+    else{cl=chs.map(function(ch){var o=allCh.find(function(x){return x.id===ch;});return o?o.l:ch;}).join('、');}
+    var rday=+f.resetDay||1;
+    var rdayLabel=rday>=31?'月底':rday+'號';
+    var saved=Object.assign({},f,{
+      id:f.id||uid(),rate:+f.rate,cap:+f.cap,resetDay:rday,
+      channels:chs,channelLabel:cl,
+      customChannels:f.customChannels||[]
+    });
     var idx=S.cards.findIndex(function(c){return c.id===saved.id;});
     if(idx>=0)S.cards[idx]=saved;else S.cards.push(saved);
     if(!S.form.cardId&&S.cards.length)S.form.cardId=S.cards[0].id;
@@ -709,7 +805,7 @@ function openCard(cardId){
     S.recs=S.recs.filter(function(r){return r.cardId!==id;});
     ov.remove();save();toast('卡片已刪除','warn');render();
   };
-  document.body.appendChild(ov);rs();
+  document.body.appendChild(ov);
 }
 
 // ── CATEGORY EDITOR ───────────────────────────────────────────────────────────

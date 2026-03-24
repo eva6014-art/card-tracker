@@ -187,16 +187,26 @@ if(S.cards.length&&!S.form.cardId)S.form.cardId=S.cards[0].id;
 
 // 確保舊格式卡片有 tiers
 function ensureTiers(card){
-if(card.tiers&&card.tiers.length)return;
+if(!card.tiers||!card.tiers.length){
 card.tiers=[{id:‘t1’,name:‘基本回饋’,rate:card.rate||1,cap:card.cap||0,minSpend:0,channels:[‘all’]}];
+}
+// 確保每個 tier 都有 channels 欄位
+card.tiers.forEach(function(t){
+if(!t.channels||!t.channels.length)t.channels=[‘all’];
+if(!t.id)t.id=Math.random().toString(36).slice(2,9);
+if(!t.name)t.name=‘基本回饋’;
+});
 if(!card.customChannels)card.customChannels=[];
+if(!card.channels||!card.channels.length)card.channels=[‘all’];
+if(!card.channelLabel)card.channelLabel=‘所有通路’;
 }
 
 // 計算單一 tier 在某消費金額下的回饋
 function calcTier(tier,spent,catId){
 var cat=S.cats.find(function(c){return c.id===catId;});
-var ok=tier.channels.indexOf(‘all’)>=0;
-if(!ok&&cat){ok=cat.channels.some(function(ch){return tier.channels.indexOf(ch)>=0;});}
+var tch=(tier&&tier.channels&&tier.channels.length)?tier.channels:[‘all’];
+var ok=tch.indexOf(‘all’)>=0;
+if(!ok&&cat){ok=cat.channels.some(function(ch){return tch.indexOf(ch)>=0;});}
 if(!ok)return{reward:0,progress:0,remaining:0,rewardLeft:0,active:false,ok:false};
 var raw=spent*(tier.rate/100);
 var reward=tier.cap>0?Math.min(raw,tier.cap):raw;
@@ -544,7 +554,7 @@ window.cat_del=function(id){S.cats=S.cats.filter(function(c){return c.id!==id;})
 document.body.appendChild(ov);rs();
 }
 
-render();save();
+try{render();}catch(e){console.error(‘render error:’,e);document.getElementById(‘content’).innerHTML=’<div style="padding:20px;color:red">載入錯誤，請重新整理頁面</div>’;}save();
 </script>
 
 </body>

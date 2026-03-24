@@ -84,6 +84,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 <div id="ct"></div>
 </div>
 <div id="toast"></div>
+<input type="file" id="fimp" accept=".json" style="display:none">
 <script>
 var C={p:'#7c6cfc',a:'#38b6ff',t:'#1e1b4b',t2:'#4b5080',t3:'#8b93c8',d:'#f43f5e',w:'#f59e0b',ok:'#10b981',bg:'#f0f4ff',b:'#d0d8ff'};
 var TC=['#38b6ff','#f59e0b','#10b981','#f472b6','#7c6cfc'];
@@ -243,6 +244,11 @@ function vMgmt(){
     card.tiers.forEach(function(t,ti){var tc=TC[ti%TC.length];h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="width:7px;height:7px;border-radius:50%;background:'+tc+';display:inline-block"></span><span style="font-size:11px;font-weight:700;color:'+tc+'">'+esc(t.n)+'</span><span style="font-size:11px;color:'+C.t2+'">'+t.r+'%'+(t.cap>0?' 上限'+$$(t.cap):'無上限')+(t.ms>0?' 門檻'+$$(t.ms):'')+'</span></div>';});
     h+='</div><div style="font-size:10px;color:'+C.t3+';line-height:1.8"><div>📌 '+card.cl+'</div><div>🔄 每月'+rds+'重置 · 本月'+st.r.length+'筆 '+$$(st.sp)+'</div>'+(card.note?'<div>💡 '+esc(card.note)+'</div>':'')+'</div></div>';
   });
+  h+='<div class="sec mt">資料管理</div>';
+  h+='<button style="width:100%;background:white;border:1.5px solid '+C.a+';border-radius:12px;padding:12px;font-size:13px;font-weight:700;color:'+C.a+';display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px" onclick="expData()">⬇ 匯出備份（JSON）</button>';
+  h+='<button style="width:100%;background:white;border:1.5px solid '+C.p+';border-radius:12px;padding:12px;font-size:13px;font-weight:700;color:'+C.p+';display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px" onclick="document.getElementById(\'fimp\').click()">⬆ 匯入備份（JSON）</button>';
+  h+='<div style="font-size:11px;color:'+C.t3+';text-align:center;margin-bottom:14px;line-height:1.7">匯入時將覆蓋目前所有資料，請先匯出備份</div>';
+  h+='<button style="width:100%;background:white;border:1.5px solid rgba(244,63,94,.3);border-radius:12px;padding:12px;font-size:13px;font-weight:700;color:'+C.d+';display:flex;align-items:center;justify-content:center" onclick="clr()">清除所有消費紀錄</button>';
   return h;
 }
 function render(){rh();document.querySelectorAll('.nb').forEach(function(b){b.classList.toggle('on',b.dataset.v===S.view);});var el=document.getElementById('ct');try{if(S.view==='home')el.innerHTML=vHome();else if(S.view==='add'){el.innerHTML=vAdd();bindAmt();}else if(S.view==='hist')el.innerHTML=vHist();else el.innerHTML=vMgmt();}catch(e){el.innerHTML='<div style="padding:20px;color:red">載入錯誤，請重新整理</div>';console.error(e);}}
@@ -321,6 +327,9 @@ function openCard(cid){
   window.ce_del=function(id){S.cards=S.cards.filter(function(c){return c.id!==id;});S.recs=S.recs.filter(function(r){return r.cid!==id;});ov.remove();save();toast('卡片已刪除','warn');render();};
   document.body.appendChild(ov);bld();
 }
+function expData(){var b=new Blob([JSON.stringify({v:9,cards:S.cards,recs:S.recs},null,2)],{type:'application/json'});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download='cards-'+td()+'.json';a.click();URL.revokeObjectURL(u);toast('匯出成功 ✓');}
+function clr(){if(confirm('確定清除所有消費紀錄？')){S.recs=[];save();toast('已清除','warn');render();}}
+document.getElementById('fimp').onchange=function(){var f=this.files&&this.files[0];if(!f)return;var r=new FileReader();r.onload=function(e){try{var d=JSON.parse(e.target.result);if(!d.cards)throw 0;S.cards=d.cards;S.recs=d.recs||[];save();toast('匯入完成：'+S.cards.length+'張卡');render();}catch(er){toast('匯入失敗','err');}};r.readAsText(f);this.value='';};
 try{render();}catch(e){console.error(e);}save();
 </script>
 </body>

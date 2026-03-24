@@ -185,7 +185,7 @@ function vHome(){
     h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px"><div>'+bdg(card)+'<div style="font-size:10px;color:'+C.t3+';margin-top:5px">'+card.cl+' · 每月'+rds+'重置</div></div>';
     h+='<div style="position:relative">'+ring(tp,58,card.a)+'<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-size:10px;font-weight:700;color:'+card.a+'">'+$$(st.rw)+'</div><div style="font-size:9px;color:'+C.t3+'">回饋</div></div></div></div>';
     card.tiers.forEach(function(tier,ti){
-      var ts=st.ts[ti],tc2=TC[ti%TC.length],pp=Math.min(ts.prog*100,100),over=ts.prog>=1;
+      var ts=st.ts[ti],tc2=TC[ti%TC.length],pp=Math.min(ts.prog*100,100),over=ts.prog>=1&&!ts.uncapped;
       h+='<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px"><div style="display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+tc2+'"></span><span style="font-size:11px;font-weight:700;color:'+C.t2+'">'+esc(tier.n)+'</span><span style="font-size:10px;color:'+tc2+'">'+tier.r+'%</span></div><span style="font-size:11px;color:'+C.t3+'">';
       if(!ts.ok)h+='通路不符';
       else if(tier.ms>0&&!ts.active)h+='再刷'+$$(ts.rem)+'達門檻';
@@ -274,7 +274,7 @@ function openCard(cid){
     rdo+='<option value="29"'+(+f.rd===29?' selected':'')+'>29號</option><option value="30"'+(+f.rd===30?' selected':'')+'>30號</option><option value="31"'+(+f.rd===31?' selected':'')+'>月底</option>';
     var cych=CYOPTS.map(function(c){return'<button class="chip'+(f.cy===c.id?' on':'')+'" onclick="ce_cy(\''+c.id+'\')">'+c.l+'</button>';}).join('');
     var chch=CHOPTS.map(function(c){return'<button class="chip'+(f.ch.indexOf(c.id)>=0?' on':'')+'" onclick="ce_ch(\''+c.id+'\')">'+c.l+'</button>';}).join('');
-    var th='';f.tiers.forEach(function(t,ti){var tc=TC[ti%TC.length];var tch=CHOPTS.map(function(c){return'<button class="chip'+(t.ch.indexOf(c.id)>=0?' on':'')+'" onclick="te_ch('+ti+',\''+c.id+'\')" style="padding:4px 8px;font-size:11px">'+c.l+'</button>';}).join('');th+='<div class="tc"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:12px;font-weight:700;color:'+tc+'">第'+(ti+1)+'檔</span>'+(ti>0?'<button onclick="te_del('+ti+')" style="background:none;border:none;color:'+C.d+';font-size:15px;padding:1px 5px">✕</button>':'<span style="font-size:10px;color:'+C.t3+'">必填</span>')+'</div><div style="margin-bottom:6px"><span class="tlbl">名稱</span><input class="tinp" id="tn'+ti+'" value="'+esc(t.n)+'" placeholder="基本回饋"></div><div style="display:flex;gap:6px;margin-bottom:6px"><div style="flex:1"><span class="tlbl">回饋率%</span><input class="tinp" id="tr'+ti+'" type="number" step="0.1" min="0" value="'+t.r+'" placeholder="1"></div><div style="flex:1"><span class="tlbl">上限(0=無)</span><input class="tinp" id="tcp'+ti+'" type="number" min="0" value="'+t.cap+'" placeholder="0"></div></div><div style="margin-bottom:6px"><span class="tlbl">門檻(0=無條件)</span><input class="tinp" id="tm'+ti+'" type="number" min="0" value="'+t.ms+'" placeholder="0"></div><div><span class="tlbl">適用通路</span><div class="cr" style="gap:4px">'+tch+'</div></div></div>';});
+    var th='';f.tiers.forEach(function(t,ti){var tc=TC[ti%TC.length];var tch=CHOPTS.map(function(c){return'<button class="chip'+(t.ch.indexOf(c.id)>=0?' on':'')+'" onclick="te_ch('+ti+',\''+c.id+'\')" style="padding:4px 8px;font-size:11px">'+c.l+'</button>';}).join('');th+='<div class="tc"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:12px;font-weight:700;color:'+tc+'">第'+(ti+1)+'檔</span>'+(ti>0?'<button onclick="te_del('+ti+')" style="background:none;border:none;color:'+C.d+';font-size:15px;padding:1px 5px">✕</button>':'<span style="font-size:10px;color:'+C.t3+'">必填</span>')+'</div><div style="margin-bottom:6px"><span class="tlbl">名稱</span><input class="tinp" id="tn'+ti+'" value="'+esc(t.n)+'" placeholder="基本回饋"></div><div style="display:flex;gap:6px;margin-bottom:6px"><div style="flex:1"><span class="tlbl">回饋率%</span><input class="tinp" id="tr'+ti+'" type="number" step="0.1" min="0" value="'+t.r+'" placeholder="1"></div><div style="flex:1"><span class="tlbl">上限(0=無)</span><input class="tinp" id="tcp'+ti+'" type="number" min="0" value="'+(+t.cap>0?t.cap:'')+'+" placeholder="0=無上限"></div></div><div id="hint'+ti+'" style="font-size:11px;color:#7c6cfc;background:#7c6cfc10;border-radius:7px;padding:6px 10px;margin-top:4px;display:none"></div><div style="margin-bottom:6px"><span class="tlbl">門檻(0=無條件)</span><input class="tinp" id="tm'+ti+'" type="number" min="0" value="'+(+t.ms>0?t.ms:'')+'" placeholder="0（無條件）"></div><div><span class="tlbl">適用通路</span><div class="cr" style="gap:4px">'+tch+'</div></div></div>';});
     var inner='<div class="sh"><div style="width:32px;height:4px;border-radius:2px;background:'+C.b+';margin:12px auto 4px"></div>';
     inner+='<div class="shh"><span class="sht">'+(isNew?'✦ 新增卡片':'✎ 編輯卡片')+'</span><button class="shc" onclick="document.querySelector(\'.ov-w\').remove()">✕</button></div>';
     inner+='<div id="cprev" style="margin:12px 14px 0;padding:14px 16px;border-radius:14px;background:'+f.c+';border:1.5px solid '+f.a+'55;flex-shrink:0"><div id="pn" style="font-size:15px;font-weight:800;color:'+f.a+'">'+(f.n||'卡片名稱')+'</div><div id="pb" style="font-size:11px;color:'+f.a+'99;margin-top:2px">'+(f.bk||'銀行名稱')+'</div><div id="pt" style="font-size:11px;color:'+f.a+'88;margin-top:6px">'+f.tiers.map(function(t){return(t.r||'—')+'%'+(+t.cap>0?'(上'+$$(+t.cap)+')':'無限');}).join('+')+'</div></div>';
@@ -295,11 +295,23 @@ function openCard(cid){
     f.tiers.forEach(function(t,ti){
       var a=document.getElementById('tn'+ti);if(a)a.addEventListener('input',function(){f.tiers[ti].n=this.value;upPT();});
       var b=document.getElementById('tr'+ti);if(b)b.addEventListener('input',function(){f.tiers[ti].r=this.value;upPT();});
-      var c=document.getElementById('tcp'+ti);if(c)c.addEventListener('input',function(){f.tiers[ti].cap=this.value;upPT();});
+      var c=document.getElementById('tcp'+ti);if(c)c.addEventListener('input',function(){f.tiers[ti].cap=this.value;upPT();});setTimeout(upPT,50);
       var d=document.getElementById('tm'+ti);if(d)d.addEventListener('input',function(){f.tiers[ti].ms=this.value;});
     });
   }
-  function upPT(){var p=document.getElementById('pt');if(p)p.textContent=f.tiers.map(function(t){return(t.r||'—')+'%'+(+t.cap>0?'(上'+$$(+t.cap)+')':'無限');}).join('+');}
+  function upPT(){
+    var p=document.getElementById('pt');
+    if(p)p.textContent=f.tiers.map(function(t){return(t.r||'—')+'%'+(+t.cap>0?'(上'+$$(+t.cap)+')':'無限');}).join('+');
+    // 顯示各檔建議刷卡金額
+    f.tiers.forEach(function(t,ti){
+      var hint=document.getElementById('hint'+ti);
+      if(!hint)return;
+      var r=parseFloat(t.r)||0,cap=parseFloat(t.cap)||0;
+      if(r>0&&cap>0){hint.textContent='✦ 刷超過 '+$$(cap/(r/100))+' 就不划算';hint.style.display='block';}
+      else if(r>0&&cap<=0){hint.textContent='✦ 無上限回饋，刷越多越好';hint.style.display='block';}
+      else{hint.style.display='none';}
+    });
+  }
   function syncT(){f.tiers.forEach(function(t,ti){var a=document.getElementById('tn'+ti);if(a)t.n=a.value;var b=document.getElementById('tr'+ti);if(b)t.r=b.value;var c=document.getElementById('tcp'+ti);if(c)t.cap=c.value;var d=document.getElementById('tm'+ti);if(d)t.ms=d.value;});}
   window.ce_cy=function(v){f.cy=v;var el=document.getElementById('cyc');if(el)el.innerHTML=CYOPTS.map(function(c){return'<button class="chip'+(f.cy===c.id?' on':'')+'" onclick="ce_cy(\''+c.id+'\')">'+c.l+'</button>';}).join('');};
   window.ce_ch=function(ch){if(ch==='all'){f.ch=['all'];}else{var cur=f.ch.filter(function(c){return c!=='all';});var i=cur.indexOf(ch);if(i>=0)cur.splice(i,1);else cur.push(ch);f.ch=cur.length?cur:['all'];}var el=document.getElementById('chc');if(el)el.innerHTML=CHOPTS.map(function(c){return'<button class="chip'+(f.ch.indexOf(c.id)>=0?' on':'')+'" onclick="ce_ch(\''+c.id+'\')">'+c.l+'</button>';}).join('');};

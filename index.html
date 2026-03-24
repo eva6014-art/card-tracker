@@ -147,8 +147,10 @@ function calcT(tier,spent,catId){
   var raw=spent*(tier.r/100),rw=tier.cap>0?Math.min(raw,tier.cap):raw;
   var ms=tier.ms||0;
   if(ms>0){var p=Math.min(spent/ms,1);return{rw:rw,prog:p,rem:Math.max(ms-spent,0),rl:tier.cap>0?Math.max(tier.cap-rw,0):0,ok:true,active:spent>=ms};}
-  var mx=tier.cap>0?tier.cap/(tier.r/100):0,p2=mx>0?Math.min(spent/mx,1):1;
-  return{rw:rw,prog:p2,rem:mx>0?Math.max(mx-spent,0):0,rl:tier.cap>0?Math.max(tier.cap-rw,0):0,ok:true,active:true};
+  var mx=tier.cap>0?tier.cap/(tier.r/100):0;
+  // cap=0 無上限：消費$0時進度0，有消費時顯示淡藍，不顯示已達上限
+  var p2=mx>0?Math.min(spent/mx,1):(spent>0?0.3:0);
+  return{rw:rw,prog:p2,rem:mx>0?Math.max(mx-spent,0):0,rl:tier.cap>0?Math.max(tier.cap-rw,0):0,ok:true,active:true,uncapped:tier.cap<=0};
 }
 function cstat(card){
   fix(card);
@@ -241,7 +243,7 @@ function vMgmt(){
     fix(card);var st=cstat(card);var rds=+card.rd>=31?'月底':card.rd+'號';
     h+='<div class="card up" style="animation-delay:'+i*.06+'s"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+bdg(card)+'<button style="background:#e8eeff;border:1px solid '+C.b+';border-radius:7px;padding:4px 12px;font-size:11px;color:'+C.p+';font-weight:700" onclick="openCard(\''+card.id+'\')">編輯</button></div>';
     h+='<div style="margin-bottom:8px">';
-    card.tiers.forEach(function(t,ti){var tc=TC[ti%TC.length];h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="width:7px;height:7px;border-radius:50%;background:'+tc+';display:inline-block"></span><span style="font-size:11px;font-weight:700;color:'+tc+'">'+esc(t.n)+'</span><span style="font-size:11px;color:'+C.t2+'">'+t.r+'%'+(t.cap>0?' 上限'+$$(t.cap):'無上限')+(t.ms>0?' 門檻'+$$(t.ms):'')+'</span></div>';});
+    card.tiers.forEach(function(t,ti){var tc=TC[ti%TC.length];var maxSp=t.cap>0&&t.r>0?t.cap/(t.r/100):0;var hintStr=maxSp>0?' · 刷滿'+$$(maxSp):'';h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="width:7px;height:7px;border-radius:50%;background:'+tc+';display:inline-block"></span><span style="font-size:11px;font-weight:700;color:'+tc+'">'+esc(t.n)+'</span><span style="font-size:11px;color:'+C.t2+'">'+t.r+'%'+(t.cap>0?' 上限'+$$(t.cap):'無上限')+(t.ms>0?' 門檻'+$$(t.ms):'')+hintStr+'</span></div>';});
     h+='</div><div style="font-size:10px;color:'+C.t3+';line-height:1.8"><div>📌 '+card.cl+'</div><div>🔄 每月'+rds+'重置 · 本月'+st.r.length+'筆 '+$$(st.sp)+'</div>'+(card.note?'<div>💡 '+esc(card.note)+'</div>':'')+'</div></div>';
   });
   h+='<div class="sec mt">資料管理</div>';

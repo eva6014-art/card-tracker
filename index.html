@@ -143,9 +143,18 @@ var S={
   cards:lg(K.ca,DEFCARDS),recs:lg(K.re,getSmp()),cats:lg(K.ct,DEFCATS),
   view:'home',month:nm(),form:{cid:'',amt:'',cat:'dining',note:'',dt:td()}
 };
-// Fix corrupted cats: remove any cat without valid id/e/n/ch
-S.cats=S.cats.filter(function(c){return c&&c.id&&c.n&&c.e&&Array.isArray(c.ch);});
+// Repair cats: remove corrupted entries (e.g. "+ em +" from old bug)
+S.cats=S.cats.filter(function(c){
+  return c&&c.id&&c.n&&c.e&&Array.isArray(c.ch)&&
+    typeof c.e==='string'&&c.e.length<=8&&  // emoji is short
+    c.n.length<=20&&                          // name is short
+    c.id.indexOf(' ')<0;                      // id has no spaces
+});
 if(!S.cats.length)S.cats=JSON.parse(JSON.stringify(DEFCATS));
+// Repair cards: fix tiers structure
+S.cards.forEach(function(card){
+  try{fix(card);}catch(e){card.tiers=[{id:'t1',n:'回饋',r:1,cap:0,ms:0,ch:['all']}];}
+});
 if(S.cards.length&&!S.form.cid)S.form.cid=S.cards[0].id;
 
 function fix(card){
@@ -391,10 +400,14 @@ function render(){
   var el=document.getElementById('ct');
   try{
     if(S.view==='home')el.innerHTML=vHome();
-    else if(S.view==='add'){el.innerHTML=vAdd();bindAmt();bindBtns();}
+    else if(S.view==='add'){el.innerHTML=vAdd();bindAmt();}
     else if(S.view==='hist')el.innerHTML=vHist();
     else el.innerHTML=vMgmt();
-  }catch(e){el.innerHTML='<div style="padding:20px;color:red">載入錯誤</div>';console.error(e);}
+    bindBtns();
+  }catch(e){
+    el.innerHTML='<div style="padding:20px;color:red;font-size:12px">載入錯誤: '+e.message+'</div>';
+    console.error(e);
+  }
 }
 function bindBtns(){
   document.querySelectorAll('[data-act]').forEach(function(btn){

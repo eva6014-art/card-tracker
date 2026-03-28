@@ -386,10 +386,16 @@ document.querySelectorAll(’.nb’).forEach(function(b){b.classList.toggle(‘o
 var el=document.getElementById(‘ct’);
 try{
 if(S.view===‘home’)el.innerHTML=vHome();
-else if(S.view===‘add’){el.innerHTML=vAdd();bindAmt();}
+else if(S.view===‘add’){el.innerHTML=vAdd();bindAmt();bindBtns();}
 else if(S.view===‘hist’)el.innerHTML=vHist();
 else el.innerHTML=vMgmt();
 }catch(e){el.innerHTML=’<div style="padding:20px;color:red">載入錯誤</div>’;console.error(e);}
+}
+function bindBtns(){
+document.querySelectorAll(’[data-act]’).forEach(function(btn){
+if(btn._bound)return;btn._bound=true;
+btn.addEventListener(‘click’,function(e){e.stopPropagation();dispatchAct(this);});
+});
 }
 function sv(v){S.view=v;render();}
 function syncF(){
@@ -458,9 +464,7 @@ if(k<=nm()){S.month=k;render();}
 document.querySelectorAll(’.nb’).forEach(function(b){b.onclick=function(){sv(b.dataset.v);};});
 
 // ── EVENT DELEGATION: all data-act buttons ──
-document.addEventListener(‘click’,function(e){
-var btn=e.target.closest(’[data-act]’);
-if(!btn)return;
+function dispatchAct(btn){
 var act=btn.dataset.act,id=btn.dataset.id||’’,v=btn.dataset.v||’’;
 if(act===‘sv’)sv(v);
 else if(act===‘setCat’)setCat(id);
@@ -479,15 +483,21 @@ else if(act===‘ceSave’)window._ceSave&&window._ceSave();
 else if(act===‘ceDel’)window._ceDel&&window._ceDel(id);
 else if(act===‘ceCy’)window._ceCy&&window._ceCy(id);
 else if(act===‘ceCh’)window._ceCh&&window._ceCh(id);
-else if(act===‘teCh’){var ti=+btn.dataset.ti;window._teCh&&window._teCh(ti,id);}
-else if(act===‘teDel’){var ti=+btn.dataset.ti;window._teDel&&window._teDel(ti);}
+else if(act===‘teCh’){var ti2=+(btn.dataset.ti||0);window._teCh&&window._teCh(ti2,id);}
+else if(act===‘teDel’){var ti2=+(btn.dataset.ti||0);window._teDel&&window._teDel(ti2);}
 else if(act===‘teAdd’)window._teAdd&&window._teAdd();
 else if(act===‘catTogEm’)window._catTogEm&&window._catTogEm();
-else if(act===‘catEm’)window._catEm&&window._catEm(id);
+else if(act===‘catEm’)window._catEm&&window._catEm(+id);
 else if(act===‘catCh’)window._catCh&&window._catCh(id);
 else if(act===‘catSave’)window._catSave&&window._catSave();
 else if(act===‘catDel’)window._catDel&&window._catDel(id);
 else if(act===‘ovClose’){var ov=document.querySelector(’.ov-w’);if(ov)ov.remove();}
+}
+document.addEventListener(‘click’,function(e){
+var btn=e.target;
+while(btn&&btn!==document.body){if(btn.dataset&&btn.dataset.act)break;btn=btn.parentElement;}
+if(!btn||!btn.dataset||!btn.dataset.act)return;
+dispatchAct(btn);
 });
 
 function openCard(cid){
@@ -586,17 +596,24 @@ window._ceCy=function(v){f.cy=v;var el=document.getElementById(‘cyc’);if(el)
 window._ceCh=function(ch){
 if(ch===‘all’){f.ch=[‘all’];}
 else{var cur=f.ch.filter(function(c){return c!==‘all’;});var i=cur.indexOf(ch);if(i>=0)cur.splice(i,1);else cur.push(ch);f.ch=cur.length?cur:[‘all’];}
-reChc();
+reChc();bindBtns();
 };
 window._ceAddCh=function(){
 var row=document.getElementById(‘ch-cr’);
 if(row){row.remove();return;}
 row=document.createElement(‘div’);row.id=‘ch-cr’;
 row.style.cssText=‘display:flex;gap:6px;align-items:center;margin-top:6px’;
-row.innerHTML=’<input id="ch-cv" class="si" placeholder="自訂通路名稱（如：全聯、711）" style="flex:1;padding:8px 10px;font-size:12px"><button data-act="ceConfCh" style="padding:8px 12px;border-radius:8px;border:none;background:#7c6cfc;color:white;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer">確認</button>’;
+var inp=document.createElement(‘input’);
+inp.id=‘ch-cv’;inp.className=‘si’;inp.placeholder=‘自訂通路名稱（如：全聯、7-11）’;
+inp.style.cssText=‘flex:1;padding:8px 10px;font-size:12px’;
+var btn=document.createElement(‘button’);
+btn.textContent=‘確認’;
+btn.style.cssText=‘padding:8px 12px;border-radius:8px;border:none;background:#7c6cfc;color:white;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer’;
+btn.onclick=function(e){e.stopPropagation();window._ceConfCh&&window._ceConfCh();};
+row.appendChild(inp);row.appendChild(btn);
 var el=document.getElementById(‘chc’);
 if(el)el.parentNode.insertBefore(row,el.nextSibling);
-setTimeout(function(){var inp=document.getElementById(‘ch-cv’);if(inp)inp.focus();},50);
+setTimeout(function(){inp.focus();},50);
 };
 window.*ceConfCh=function(){
 var inp=document.getElementById(‘ch-cv’);
@@ -606,16 +623,16 @@ f.customCh.push({id:id,l:l});
 f.ch=f.ch.filter(function(c){return c!==‘all’;});
 f.ch.push(id);
 var row=document.getElementById(‘ch-cr’);if(row)row.remove();
-bld();
+bld();bindBtns();
 };
 window._teCh=function(ti,ch){
 var t=f.tiers[ti];if(!t)return;
 if(ch===‘all’){t.ch=[‘all’];}
 else{var cur=t.ch.filter(function(c){return c!==‘all’;});var i=cur.indexOf(ch);if(i>=0)cur.splice(i,1);else cur.push(ch);t.ch=cur.length?cur:[‘all’];}
-syncT();bld();
+syncT();bld();bindBtns();
 };
-window._teDel=function(ti){syncT();f.tiers.splice(ti,1);bld();};
-window._teAdd=function(){syncT();f.tiers.push({id:‘t’+uid(),n:‘加碼回饋’,r:’’,cap:’’,ms:’’,ch:[‘all’]});bld();};
+window._teDel=function(ti){syncT();f.tiers.splice(ti,1);bld();bindBtns();};
+window._teAdd=function(){syncT();f.tiers.push({id:‘t’+uid(),n:‘加碼回饋’,r:’’,cap:’’,ms:’’,ch:[‘all’]});bld();bindBtns();};
 window._ceSave=function(){
 var cenEl=document.getElementById(‘cen’);if(cenEl)f.n=cenEl.value;
 var cbnkEl=document.getElementById(‘cbnk’);if(cbnkEl)f.bk=cbnkEl.value;
@@ -642,7 +659,7 @@ S.cards=S.cards.filter(function(c){return c.id!==id;});
 S.recs=S.recs.filter(function(r){return r.cid!==id;});
 ov.remove();save();toast(‘卡片已刪除’,‘warn’);render();
 };
-document.body.appendChild(ov);bld();
+document.body.appendChild(ov);bld();bindBtns();
 }
 
 function openCat(catId){
@@ -654,7 +671,7 @@ var EM=[‘🍜’, ‘🍣’, ‘☕’, ‘🛍’, ‘🚗’, ‘⛽’, �
 
 var ov=document.createElement(‘div’);ov.className=‘ov ov-w’;ov.onclick=function(e){if(e.target===ov)ov.remove();};
 function bld(){
-var ep=showEm?’<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:6px;background:white;border:1px solid #d0d8ff;border-radius:10px;padding:8px">’+EM.map(function(em){return ‘<button data-act="catEm" data-id="'+em+'" style="font-size:20px;background:'+(f.e===em?'#e8eeff':'none')+';border:none;border-radius:6px;padding:2px;cursor:pointer;width:34px;height:34px">’+em+’</button>’;}).join(’’)+’</div>’:’’;
+var ep=showEm?’<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:6px;background:white;border:1px solid #d0d8ff;border-radius:10px;padding:8px">’+EM.map(function(em,ei){return ‘<button data-act="catEm" data-id="'+ei+'" style="font-size:20px;background:'+(f.e===em?'#e8eeff':'none')+';border:none;border-radius:6px;padding:2px;cursor:pointer;width:34px;height:34px">’+em+’</button>’;}).join(’’)+’</div>’:’’;
 var chch=DEFCHOPTS.map(function(c){return ‘<button class="chip'+(f.ch.indexOf(c.id)>=0?' on':'')+'" data-act="catCh" data-id="'+c.id+'" style="padding:5px 10px;font-size:11px">’+c.l+’</button>’;}).join(’’);
 var inner=’<div class="sh" style="max-height:75vh">’;
 inner+=’<div style="width:32px;height:4px;border-radius:2px;background:#d0d8ff;margin:12px auto 4px"></div>’;
@@ -673,12 +690,12 @@ ov.innerHTML=inner;ov.querySelector(’.sh’).onclick=function(e){e.stopPropaga
 var ni=document.getElementById(‘cat-n’);
 if(ni)ni.addEventListener(‘input’,function(){f.n=this.value;var p=document.getElementById(‘cat-prev’);if(p)p.textContent=this.value||‘類別名稱’;});
 }
-window._catTogEm=function(){showEm=!showEm;bld();};
-window._catEm=function(em){f.e=em;showEm=false;bld();};
+window._catTogEm=function(){showEm=!showEm;bld();bindBtns();};
+window._catEm=function(ei){f.e=EM[ei]||EM[0];showEm=false;bld();bindBtns();};
 window._catCh=function(ch){
 if(ch===‘all’){f.ch=[‘all’];}
 else{var cur=f.ch.filter(function(x){return x!==‘all’;});var i=cur.indexOf(ch);if(i>=0)cur.splice(i,1);else cur.push(ch);f.ch=cur.length?cur:[‘all’];}
-bld();
+bld();bindBtns();
 };
 window._catSave=function(){
 var ni=document.getElementById(‘cat-n’);if(ni)f.n=ni.value;
@@ -693,7 +710,7 @@ window._catDel=function(id){
 S.cats=S.cats.filter(function(c){return c.id!==id;});
 ov.remove();save();toast(‘類別已刪除’,‘warn’);render();
 };
-document.body.appendChild(ov);bld();
+document.body.appendChild(ov);bld();bindBtns();
 }
 try{render();}catch(e){console.error(e);}save();
 

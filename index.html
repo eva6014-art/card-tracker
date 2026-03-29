@@ -171,7 +171,7 @@ function getCh(card){
 function calcT(tier,spent,catId){
   var cat=S.cats.find(function(c){return c.id===catId;});
   var tch=tier.ch&&tier.ch.length?tier.ch:['all'];
-  var ok=tch.indexOf('all')>=0;
+  var ok=tch.indexOf('all')>=0||catId==='all_overview';
   if(!ok&&cat)ok=cat.ch.some(function(x){return tch.indexOf(x)>=0;});
   if(!ok)return{rw:0,prog:0,ok:false,active:false,uncapped:false};
   var raw=spent*(tier.r/100),rw=tier.cap>0?Math.min(raw,tier.cap):raw;
@@ -184,7 +184,8 @@ function cstat(card){
   fix(card);
   var r=S.recs.filter(function(x){return x.cid===card.id&&x.dt.startsWith(S.month);});
   var sp=r.reduce(function(s,x){return s+x.amt;},0),rw=0;
-  var ts=card.tiers.map(function(t){var x=calcT(t,sp,'other');rw+=x.rw;return x;});
+  // For overview: use 'all' to always show progress regardless of channel filter
+  var ts=card.tiers.map(function(t){var x=calcT(t,sp,'all_overview');rw+=x.rw;return x;});
   return{sp:sp,rw:rw,ts:ts,r:r};
 }
 function rank(amt,catId){
@@ -262,8 +263,17 @@ function vHome(){
       else h+=M(ts.rw)+' / '+M(tier.cap);
       h+='</span></div>';
       h+='<div class="tpb"><div class="tpf" style="width:'+(ts.ok?pp:0)+'%;background:'+(over?C.d:ts.active?tc2:tc2+'55')+'"></div></div>';
-      if(over)h+='<div style="font-size:10px;color:'+C.d+';text-align:right">⚠ 已達上限</div>';
-      else if(ts.ok&&tier.ms>0&&!ts.active)h+='<div style="font-size:10px;color:'+C.t3+';text-align:right">達標後最多 '+M(tier.cap||0)+'</div>';
+      if(over){
+        h+='<div style="font-size:10px;color:'+C.d+';text-align:right">⚠ 已達上限</div>';
+      }else if(ts.ok&&tier.ms>0&&!ts.active){
+        h+='<div style="font-size:10px;color:'+C.t3+';text-align:right">達標後再刷 '+M(ts.rem)+' 最多 '+M(tier.cap||0)+'</div>';
+      }else if(ts.ok&&!ts.uncapped&&tier.cap>0){
+        var canStill=tier.cap-ts.rw;
+        if(canStill>0){
+          var stillSpend=tier.r>0?(tier.cap-ts.rw)/(tier.r/100):0;
+          h+='<div style="font-size:10px;color:'+C.ok+';text-align:right">還可刷 '+M(stillSpend)+'</div>';
+        }
+      }
       h+='</div>';
     });
     h+='<div style="display:flex;justify-content:space-between;font-size:10px;color:'+C.t3+';padding-top:8px;border-top:1px solid '+C.b+';margin-top:4px"><span>本月已刷 '+M(st.sp)+'</span><span>'+st.r.length+' 筆</span></div></div>';
@@ -295,10 +305,18 @@ function vAdd(){
   h+='<div style="position:relative"><span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:'+C.t3+';font-size:18px">$</span>';
   h+='<input id="fa" class="fi" type="number" placeholder="0" value="'+S.form.amt+'" style="padding-left:30px;font-size:22px"></div></div>';
   h+='<div><label style="font-size:11px;color:'+C.t3+';font-weight:600;display:block;margin-bottom:5px">消費類別</label><div class="cr">';
-  S.cats.forEach(function(c){
-    h+='<button class="chip'+(S.form.cat===c.id?' on':'')+'" data-act="setCat" data-id="'+c.id+'">'+c.e+' '+c.n+'</button>';
+  S.cats.forEach(function(cat){
+    if(cat.bi){
+      h+='<button class="chip'+(S.form.cat===cat.id?' on':'')+'" data-act="setCat" data-id="'+cat.id+'">'+cat.e+' '+cat.n+'</button>';
+    }else{
+      // Custom cat: select + delete
+      h+='<span style="display:inline-flex;align-items:center;border-radius:18px;border:1.5px solid '+(S.form.cat===cat.id?C.p:C.b)+';background:'+(S.form.cat===cat.id?C.p:'white')+';overflow:hidden">';
+      h+='<button style="padding:6px 8px 6px 12px;background:none;border:none;font-size:12px;color:'+(S.form.cat===cat.id?'white':C.t2)+';cursor:pointer" data-act="setCat" data-id="'+cat.id+'">'+cat.e+' '+cat.n+'</button>';
+      h+='<button style="padding:6px 8px 6px 4px;background:none;border:none;font-size:11px;color:'+(S.form.cat===cat.id?'rgba(255,255,255,.7)':C.t3)+';cursor:pointer;line-height:1" data-act="delCat" data-id="'+cat.id+'" title="刪除">✕</button>';
+      h+='</span>';
+    }
   });
-  h+='<button class="chip" data-act="sv" data-v="mgmt" style="border-style:dashed;color:'+C.t3+'">＋ 新增類別</button>';
+  h+='<button class="chip" data-act="openCat" data-id="" style="border-style:dashed;color:'+C.t3+'">＋ 新增</button>';
   h+='</div></div>';
   h+='<div><label style="font-size:11px;color:'+C.t3+';font-weight:600;display:block;margin-bottom:5px">信用卡</label>';
   S.cards.forEach(function(card){
@@ -369,23 +387,7 @@ function vMgmt(){
     if(card.note)h+='<div>💡 '+esc(card.note)+'</div>';
     h+='</div></div>';
   });
-  // 消費類別
-  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;margin-top:18px">';
-  h+='<div class="sec" style="margin:0">消費類別</div>';
-  h+='<button style="background:linear-gradient(135deg,#f472b6,#7c6cfc);border:none;border-radius:9px;padding:7px 14px;color:white;font-size:12px;font-weight:700" data-act="openCat" data-id="">＋ 新增</button></div>';
-  h+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px">';
-  S.cats.forEach(function(cat){
-    h+='<div style="background:white;border-radius:12px;padding:10px 6px;text-align:center;box-shadow:0 2px 8px #7c6cfc12;border:1px solid '+C.b+'">';
-    h+='<div style="font-size:20px">'+cat.e+'</div>';
-    h+='<div style="font-size:10px;font-weight:600;color:'+C.t+';margin-top:3px">'+cat.n+'</div>';
-    if(cat.bi){
-      h+='<div style="font-size:9px;color:'+C.t3+';margin-top:2px">內建</div>';
-    }else{
-      h+='<button data-act="openCat" data-id="'+cat.id+'" style="font-size:9px;color:'+C.p+';background:none;border:none;font-weight:600;margin-top:2px;cursor:pointer">編輯</button>';
-    }
-    h+='</div>';
-  });
-  h+='</div>';
+
   h+='<div class="sec">資料管理</div>';
   h+='<button style="width:100%;background:white;border:1.5px solid '+C.a+';border-radius:12px;padding:12px;font-size:13px;font-weight:700;color:'+C.a+';display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px" data-act="expData">⬇ 匯出備份</button>';
   h+='<button style="width:100%;background:white;border:1.5px solid '+C.p+';border-radius:12px;padding:12px;font-size:13px;font-weight:700;color:'+C.p+';display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px" data-act="impData">⬆ 匯入備份</button>';
@@ -509,6 +511,13 @@ function dispatchAct(btn){
   else if(act==='catCh')window._catCh&&window._catCh(id);
   else if(act==='catSave')window._catSave&&window._catSave();
   else if(act==='catDel')window._catDel&&window._catDel(id);
+  else if(act==='delCat'){
+    if(confirm('確定刪除「'+((S.cats.find(function(c){return c.id===id;})||{}).n||'')+' 」類別？')){
+      S.cats=S.cats.filter(function(c){return c.id!==id;});
+      if(S.form.cat===id)S.form.cat='dining';
+      save();render();
+    }
+  }
   else if(act==='ovClose'){var ov=document.querySelector('.ov-w');if(ov)ov.remove();}
 }
 document.addEventListener('click',function(e){

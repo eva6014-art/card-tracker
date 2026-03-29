@@ -356,7 +356,10 @@ function vHist(){
     if(x.note)h+='<div style="font-size:11px;color:'+C.t3+'">'+esc(x.note)+'</div>';
     h+='</div>';
     h+='<div style="text-align:right"><div style="font-size:15px;font-weight:800;color:'+C.t+'">'+M(x.amt)+'</div><div style="font-size:11px;font-weight:600;color:'+card.a+'">+'+M(rw)+'</div></div>';
+    h+='<div style="display:flex;flex-direction:column;gap:4px">';
+    h+='<button style="background:none;border:none;color:'+C.p+';font-size:13px;padding:3px 5px" data-act="editR" data-id="'+x.id+'">✎</button>';
     h+='<button style="background:none;border:none;color:'+C.t3+';font-size:14px;padding:3px 5px" data-act="delR" data-id="'+x.id+'">✕</button>';
+    h+='</div>';
     h+='</div>';
   });
   return h;
@@ -492,6 +495,7 @@ function dispatchAct(btn){
   else if(act==='applyC')applyC(id);
   else if(act==='addR')addR();
   else if(act==='delR')delR(id);
+  else if(act==='editR')editR(+id);
   else if(act==='openCard')openCard(id||null);
   else if(act==='openCat')openCat(id||null);
   else if(act==='expData')expData();
@@ -653,14 +657,53 @@ function openCard(cid){
     var row=document.getElementById('ch-cr');if(row)row.remove();
     bld();bindBtns();
   };
+  function rebuildTw(){
+    var chOpts=gCh();
+    var tw=document.getElementById('tw');
+    if(!tw)return;
+    var th='';
+    f.tiers.forEach(function(t,ti){
+      var tc=TC[ti%TC.length];
+      var rv=parseFloat(t.r)||0,cv=capN(t.cap);
+      var htxt=rv>0&&cv>0?'✦ 刷超過 '+M(cv/(rv/100))+' 就不划算':rv>0&&cv<=0?'✦ 無上限回饋':'';
+      var tch=chOpts.map(function(c){return '<button class="chip'+(t.ch.indexOf(c.id)>=0?' on':'')+'" style="padding:4px 8px;font-size:11px" data-act="teCh" data-ti="'+ti+'" data-id="'+c.id+'">'+c.l+'</button>';}).join('');
+      th+='<div class="tc">';
+      th+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
+      th+='<span style="font-size:12px;font-weight:700;color:'+tc+'">第'+(ti+1)+'檔</span>';
+      th+=(ti>0?'<button style="background:none;border:none;color:'+C.d+';font-size:15px;padding:1px 5px" data-act="teDel" data-ti="'+ti+'">✕</button>':'<span style="font-size:10px;color:'+C.t3+'">必填</span>');
+      th+='</div>';
+      th+='<div style="margin-bottom:6px"><span class="tlbl">名稱</span><input class="tinp" id="tn'+ti+'" value="'+esc(t.n)+'" placeholder="基本回饋"></div>';
+      th+='<div style="display:flex;gap:6px;margin-bottom:6px"><div style="flex:1"><span class="tlbl">回饋率 %</span><input class="tinp" id="tr'+ti+'" type="number" step="0.1" min="0" value="'+(t.r||'')+'" placeholder="1"></div><div style="flex:1"><span class="tlbl">上限（空白=無）</span><input class="tinp" id="tcp'+ti+'" type="number" min="0" value="'+(cv>0?cv:'')+'" placeholder="0=無"></div></div>';
+      th+='<div id="hint'+ti+'" style="'+(htxt?'':'display:none;')+'font-size:11px;color:'+C.p+';background:#7c6cfc10;border-radius:7px;padding:6px 10px;margin-bottom:6px">'+htxt+'</div>';
+      th+='<div style="margin-bottom:6px"><span class="tlbl">門檻（空白=無條件）</span><input class="tinp" id="tm'+ti+'" type="number" min="0" value="'+(t.ms>0?t.ms:'')+'" placeholder="0=無"></div>';
+      th+='<div><span class="tlbl">此檔適用通路</span><div class="cr" style="gap:4px">'+tch+'</div></div>';
+      th+='</div>';
+    });
+    tw.innerHTML=th;
+    // Re-bind input listeners
+    f.tiers.forEach(function(t,ti){
+      var a=document.getElementById('tn'+ti);if(a)a.addEventListener('input',function(){f.tiers[ti].n=this.value;upPT();});
+      var b=document.getElementById('tr'+ti);if(b)b.addEventListener('input',function(){f.tiers[ti].r=this.value;upPT();updH(ti);});
+      var cv=document.getElementById('tcp'+ti);if(cv)cv.addEventListener('input',function(){f.tiers[ti].cap=this.value;upPT();updH(ti);});
+      var d=document.getElementById('tm'+ti);if(d)d.addEventListener('input',function(){f.tiers[ti].ms=this.value;});
+    });
+    bindBtns();
+  }
   window._teCh=function(ti,ch){
     var t=f.tiers[ti];if(!t)return;
     if(ch==='all'){t.ch=['all'];}
     else{var cur=t.ch.filter(function(c){return c!=='all';});var i=cur.indexOf(ch);if(i>=0)cur.splice(i,1);else cur.push(ch);t.ch=cur.length?cur:['all'];}
-    syncT();bld();bindBtns();
+    syncT();
+    // Only update this tier's channel chips, not the whole modal
+    var chOpts2=gCh();
+    var container=document.querySelector('#tw .tc:nth-child('+(ti+1)+') .cr');
+    if(container){
+      container.innerHTML=chOpts2.map(function(c2){return '<button class="chip'+(t.ch.indexOf(c2.id)>=0?' on':'')+'" style="padding:4px 8px;font-size:11px" data-act="teCh" data-ti="'+ti+'" data-id="'+c2.id+'">'+c2.l+'</button>';}).join('');
+      bindBtns();
+    }else{bld();bindBtns();}
   };
-  window._teDel=function(ti){syncT();f.tiers.splice(ti,1);bld();bindBtns();};
-  window._teAdd=function(){syncT();f.tiers.push({id:'t'+uid(),n:'加碼回饋',r:'',cap:'',ms:'',ch:['all']});bld();bindBtns();};
+  window._teDel=function(ti){syncT();f.tiers.splice(ti,1);rebuildTw();}; 
+  window._teAdd=function(){syncT();f.tiers.push({id:'t'+uid(),n:'加碼回饋',r:'',cap:'',ms:'',ch:['all']});rebuildTw();}; 
   window._ceSave=function(){
     var cenEl=document.getElementById('cen');if(cenEl)f.n=cenEl.value;
     var cbnkEl=document.getElementById('cbnk');if(cbnkEl)f.bk=cbnkEl.value;
@@ -740,6 +783,49 @@ function openCat(catId){
     ov.remove();save();toast('類別已刪除','warn');render();
   };
   document.body.appendChild(ov);bld();bindBtns();
+}
+function editR(id){
+  var rec=S.recs.find(function(x){return x.id===id;});
+  if(!rec)return;
+  var f=JSON.parse(JSON.stringify(rec));
+  var ov=document.createElement('div');ov.className='ov ov-w';ov.onclick=function(e){if(e.target===ov)ov.remove();};
+  function bldE(){
+    var catOpts=S.cats.map(function(cat){return '<option value="'+cat.id+'"'+(f.cat===cat.id?' selected':'')+'>'+cat.e+' '+cat.n+'</option>';}).join('');
+    var cardOpts=S.cards.map(function(card){return '<option value="'+card.id+'"'+(f.cid===card.id?' selected':'')+'>'+card.n+'</option>';}).join('');
+    var inner='<div class="sh" style="max-height:70vh">';
+    inner+='<div style="width:32px;height:4px;border-radius:2px;background:'+C.b+';margin:12px auto 4px"></div>';
+    inner+='<div class="shh"><span class="sht">✎ 編輯紀錄</span><button class="shc" data-act="ovClose">✕</button></div>';
+    inner+='<div class="shb" style="display:flex;flex-direction:column;gap:12px">';
+    inner+='<div><span class="tlbl" style="font-size:11px">消費金額</span>';
+    inner+='<div style="position:relative"><span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:'+C.t3+';font-size:16px">$</span>';
+    inner+='<input id="er-amt" class="si" type="number" value="'+f.amt+'" style="padding-left:28px;font-size:16px"></div></div>';
+    inner+='<div><span class="tlbl" style="font-size:11px">消費類別</span>';
+    inner+='<select id="er-cat" class="si">'+catOpts+'</select></div>';
+    inner+='<div><span class="tlbl" style="font-size:11px">信用卡</span>';
+    inner+='<select id="er-cid" class="si">'+cardOpts+'</select></div>';
+    inner+='<div><span class="tlbl" style="font-size:11px">備註</span>';
+    inner+='<input id="er-note" class="si" type="text" value="'+esc(f.note||'')+'" placeholder="（可略）"></div>';
+    inner+='<div><span class="tlbl" style="font-size:11px">日期</span>';
+    inner+='<input id="er-dt" class="si" type="date" value="'+f.dt+'" max="'+td()+'"></div>';
+    inner+='<div style="height:8px"></div></div>';
+    inner+='<div class="shf"><button class="cancbtn" data-act="ovClose">取消</button><button class="savbtn" id="er-save">儲存</button></div></div>';
+    ov.innerHTML=inner;ov.querySelector('.sh').onclick=function(e){e.stopPropagation();};
+    document.getElementById('er-save').onclick=function(){
+      var amt=parseFloat(document.getElementById('er-amt').value)||0;
+      if(!amt){toast('請輸入金額','err');return;}
+      var i=S.recs.findIndex(function(x){return x.id===id;});
+      if(i>=0){
+        S.recs[i].amt=amt;
+        S.recs[i].cat=document.getElementById('er-cat').value;
+        S.recs[i].cid=document.getElementById('er-cid').value;
+        S.recs[i].note=document.getElementById('er-note').value;
+        S.recs[i].dt=document.getElementById('er-dt').value;
+      }
+      ov.remove();save();toast('已更新 ✓');render();
+    };
+    bindBtns();
+  }
+  document.body.appendChild(ov);bldE();
 }
 try{render();}catch(e){console.error(e);}save();
 

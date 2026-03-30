@@ -171,13 +171,7 @@ function getCh(card){
 function calcT(tier,spent,catId){
   var cat=S.cats.find(function(c){return c.id===catId;});
   var tch=tier.ch&&tier.ch.length?tier.ch:['all'];
-  var ok=tch.indexOf('all')>=0||catId==='all_overview';
-  // cat.ch has 'all' → matches any tier
-  if(!ok&&cat&&cat.ch.indexOf('all')>=0)ok=true;
-  // intersection
-  if(!ok&&cat)ok=cat.ch.some(function(x){return tch.indexOf(x)>=0;});
-  // direct catId in tier.ch
-  if(!ok)ok=tch.indexOf(catId)>=0;
+  var ok=catId==='all_overview'||chMatch(tier,catId,null);
   if(!ok)return{rw:0,prog:0,ok:false,active:false,uncapped:false};
   var raw=spent*(tier.r/100),rw=tier.cap>0?Math.min(raw,tier.cap):raw;
   var ms=tier.ms||0,uncapped=tier.cap<=0;
@@ -193,21 +187,34 @@ function cstat(card){
   var ts=card.tiers.map(function(t){var x=calcT(t,sp,'all_overview');rw+=x.rw;return x;});
   return{sp:sp,rw:rw,ts:ts,r:r};
 }
+function chMatch(tier,catId,card){
+  // Does consuming in catId category count toward this tier?
+  var tch=tier.ch&&tier.ch.length?tier.ch:['all'];
+  // Rule 1: tier allows all channels
+  if(tch.indexOf('all')>=0)return true;
+  var cat=S.cats.find(function(c){return c.id===catId;});
+  if(!cat)return false;
+  // Rule 2: standard ID intersection (e.g. tier=['dining'], cat.ch=['all','dining'])
+  var stdMatch=tch.some(function(ch){
+    if(ch.indexOf('cus_')===0)return false; // skip custom IDs for now
+    return cat.ch.indexOf(ch)>=0;
+  });
+  if(stdMatch)return true;
+  // Rule 3: custom tier channel - match by label name vs category name
+  var allCh=card?getCh(card):DEFCHOPTS;
+  var cusMatch=tch.some(function(ch){
+    if(ch.indexOf('cus_')!==0)return false;
+    var opt=allCh.find(function(o){return o.id===ch;});
+    if(!opt)return false;
+    // The category name must match the custom channel label (exact or contains)
+    return cat.n===opt.l||cat.n.indexOf(opt.l)>=0||opt.l.indexOf(cat.n)>=0;
+  });
+  return cusMatch;
+}
 function tierSpent(card,tier,catId){
-  // How much has been spent THIS month on records that match this tier's channels?
-  // We need to count only spending that would apply to this tier
   return S.recs.filter(function(x){
     if(x.cid!==card.id||!x.dt.startsWith(S.month))return false;
-    var cat=S.cats.find(function(c){return c.id===x.cat;});
-    var tch=tier.ch&&tier.ch.length?tier.ch:['all'];
-    if(tch.indexOf('all')>=0)return true;
-    if(!cat)return false;
-    // cat.ch has 'all' → matches all tiers
-    if(cat.ch.indexOf('all')>=0)return true;
-    // intersection check
-    if(cat.ch.some(function(ch){return tch.indexOf(ch)>=0;}))return true;
-    // direct catId in tier.ch (custom channel matching)
-    return tch.indexOf(x.cat)>=0;
+    return chMatch(tier,x.cat,card);
   }).reduce(function(s,x){return s+x.amt;},0);
 }
 function rank(amt,catId){
@@ -217,17 +224,7 @@ function rank(amt,catId){
     var tr=card.tiers.reduce(function(sum,tier){
       var spTier=tierSpent(card,tier,catId);
       // Does this new purchase match this tier's channels?
-      var cat=S.cats.find(function(c){return c.id===catId;});
-      var tch=tier.ch&&tier.ch.length?tier.ch:['all'];
-      // tier has 'all' → matches everything
-      var matches=tch.indexOf('all')>=0;
-      // cat has 'all' in its ch → matches all tiers
-      if(!matches&&cat&&cat.ch.indexOf('all')>=0)matches=true;
-      // direct intersection
-      if(!matches&&cat)matches=cat.ch.some(function(ch){return tch.indexOf(ch)>=0;});
-      // also check tier ch against cat id directly (custom channel = category name match)
-      if(!matches&&cat)matches=tch.indexOf(catId)>=0;
-      if(!matches)return sum; // This tier doesn't apply to this purchase
+      if(!chMatch(tier,catId,card))return sum;
       // Check milestone: must hit ms to earn anything
       var ms=tier.ms||0;
       if(ms>0&&spTier+amt<ms)return sum; // Won't hit milestone

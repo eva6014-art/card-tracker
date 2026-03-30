@@ -542,6 +542,7 @@ function dispatchAct(btn){
   else if(act==='clr')clr();
   else if(act==='ceAddCh')window._ceAddCh&&window._ceAddCh();
   else if(act==='ceConfCh')window._ceConfCh&&window._ceConfCh();
+  else if(act==='ceDelCh')window._ceDelCh&&window._ceDelCh(id);
   else if(act==='ceSave')window._ceSave&&window._ceSave();
   else if(act==='ceDel')window._ceDel&&window._ceDel(id);
   else if(act==='ceCy')window._ceCy&&window._ceCy(id);
@@ -595,7 +596,18 @@ function openCard(cid){
     rdo+='<option value="31"'+(+f.rd===31?' selected':'')+'>月底</option>';
     var chOpts=gCh();
     var cych=CYOPTS.map(function(c){return '<button class="chip'+(f.cy===c.id?' on':'')+'" data-act="ceCy" data-id="'+c.id+'">'+c.l+'</button>';}).join('');
-    var chch=chOpts.map(function(c){return '<button class="chip'+(f.ch.indexOf(c.id)>=0?' on':'')+'" data-act="ceCh" data-id="'+c.id+'">'+c.l+'</button>';}).join('');
+    var chch=chOpts.map(function(opt){
+      var isSel=f.ch.indexOf(opt.id)>=0;
+      var isCus=opt.id.indexOf('cus_')===0;
+      if(isCus){
+        // Custom channel: show with delete button
+        return '<span style="display:inline-flex;align-items:center;border-radius:18px;border:1.5px solid '+(isSel?C.p:C.b)+';background:'+(isSel?C.p:'white')+';overflow:hidden">'
+          +'<button style="padding:6px 8px 6px 12px;background:none;border:none;font-size:12px;color:'+(isSel?'white':C.t2)+';cursor:pointer" data-act="ceCh" data-id="'+opt.id+'">'+opt.l+'</button>'
+          +'<button style="padding:6px 10px 6px 2px;background:none;border:none;font-size:11px;color:'+(isSel?'rgba(255,255,255,.8)':C.t3)+';cursor:pointer;line-height:1" data-act="ceDelCh" data-id="'+opt.id+'" title="刪除">✕</button>'
+          +'</span>';
+      }
+      return '<button class="chip'+(isSel?' on':'')+'" data-act="ceCh" data-id="'+opt.id+'">'+opt.l+'</button>';
+    }).join('');
     chch+='<button class="chip" data-act="ceAddCh" style="border-style:dashed;color:'+C.t3+'">＋ 自訂</button>';
     var th='';
     f.tiers.forEach(function(t,ti){
@@ -661,7 +673,21 @@ function openCard(cid){
   function upPT(){var p=document.getElementById('pt');if(p)p.textContent=f.tiers.map(function(t){return (t.r||'—')+'%'+(capN(t.cap)>0?'(上'+M(capN(t.cap))+')':'無限');}).join('+');}
   function updH(ti){var h=document.getElementById('hint'+ti);if(!h)return;var rv=parseFloat(f.tiers[ti].r)||0,cv=capN(f.tiers[ti].cap);if(rv>0&&cv>0){h.textContent='✦ 刷超過 '+M(cv/(rv/100))+' 就不划算';h.style.display='block';}else if(rv>0&&cv<=0){h.textContent='✦ 無上限回饋';h.style.display='block';}else h.style.display='none';}
   function syncT(){f.tiers.forEach(function(t,ti){var a=document.getElementById('tn'+ti);if(a)t.n=a.value;var b=document.getElementById('tr'+ti);if(b)t.r=b.value;var cv=document.getElementById('tcp'+ti);if(cv)t.cap=cv.value;var d=document.getElementById('tm'+ti);if(d)t.ms=d.value;});}
-  function reChc(){var chOpts=gCh();var el=document.getElementById('chc');if(el){el.innerHTML=chOpts.map(function(c){return '<button class="chip'+(f.ch.indexOf(c.id)>=0?' on':'')+'" data-act="ceCh" data-id="'+c.id+'">'+c.l+'</button>';}).join('');el.innerHTML+='<button class="chip" data-act="ceAddCh" style="border-style:dashed;color:'+C.t3+'">＋ 自訂</button>';}}
+  function reChc(){
+    var chOpts=gCh();var el=document.getElementById('chc');if(!el)return;
+    el.innerHTML=chOpts.map(function(opt){
+      var isSel=f.ch.indexOf(opt.id)>=0;
+      var isCus=opt.id.indexOf('cus_')===0;
+      if(isCus){
+        return '<span style="display:inline-flex;align-items:center;border-radius:18px;border:1.5px solid '+(isSel?C.p:C.b)+';background:'+(isSel?C.p:'white')+';overflow:hidden">'
+          +'<button style="padding:6px 8px 6px 12px;background:none;border:none;font-size:12px;color:'+(isSel?'white':C.t2)+';cursor:pointer" data-act="ceCh" data-id="'+opt.id+'">'+opt.l+'</button>'
+          +'<button style="padding:6px 10px 6px 2px;background:none;border:none;font-size:11px;color:'+(isSel?'rgba(255,255,255,.8)':C.t3)+';cursor:pointer;line-height:1" data-act="ceDelCh" data-id="'+opt.id+'" title="刪除">✕</button>'
+          +'</span>';
+      }
+      return '<button class="chip'+(isSel?' on':'')+'" data-act="ceCh" data-id="'+opt.id+'">'+opt.l+'</button>';
+    }).join('');
+    el.innerHTML+='<button class="chip" data-act="ceAddCh" style="border-style:dashed;color:'+C.t3+'">＋ 自訂</button>';
+  }
 
   window._ceCy=function(v){f.cy=v;var el=document.getElementById('cyc');if(el)el.innerHTML=CYOPTS.map(function(c){return '<button class="chip'+(f.cy===c.id?' on':'')+'" data-act="ceCy" data-id="'+c.id+'">'+c.l+'</button>';}).join('');};
   window._ceCh=function(ch){
@@ -695,6 +721,16 @@ function openCard(cid){
     f.ch.push(id);
     var row=document.getElementById('ch-cr');if(row)row.remove();
     bld();bindBtns();
+  };
+  window._ceDelCh=function(id){
+    f.customCh=f.customCh.filter(function(c){return c.id!==id;});
+    f.ch=f.ch.filter(function(c){return c!==id;});
+    if(!f.ch.length)f.ch=['all'];
+    f.tiers.forEach(function(t){
+      t.ch=t.ch.filter(function(c){return c!==id;});
+      if(!t.ch.length)t.ch=['all'];
+    });
+    syncT();reChc();bindBtns();rebuildTw();
   };
   function rebuildTw(){
     var chOpts=gCh();

@@ -172,7 +172,12 @@ function calcT(tier,spent,catId){
   var cat=S.cats.find(function(c){return c.id===catId;});
   var tch=tier.ch&&tier.ch.length?tier.ch:['all'];
   var ok=tch.indexOf('all')>=0||catId==='all_overview';
+  // cat.ch has 'all' → matches any tier
+  if(!ok&&cat&&cat.ch.indexOf('all')>=0)ok=true;
+  // intersection
   if(!ok&&cat)ok=cat.ch.some(function(x){return tch.indexOf(x)>=0;});
+  // direct catId in tier.ch
+  if(!ok)ok=tch.indexOf(catId)>=0;
   if(!ok)return{rw:0,prog:0,ok:false,active:false,uncapped:false};
   var raw=spent*(tier.r/100),rw=tier.cap>0?Math.min(raw,tier.cap):raw;
   var ms=tier.ms||0,uncapped=tier.cap<=0;
@@ -197,7 +202,12 @@ function tierSpent(card,tier,catId){
     var tch=tier.ch&&tier.ch.length?tier.ch:['all'];
     if(tch.indexOf('all')>=0)return true;
     if(!cat)return false;
-    return cat.ch.some(function(ch){return tch.indexOf(ch)>=0;});
+    // cat.ch has 'all' → matches all tiers
+    if(cat.ch.indexOf('all')>=0)return true;
+    // intersection check
+    if(cat.ch.some(function(ch){return tch.indexOf(ch)>=0;}))return true;
+    // direct catId in tier.ch (custom channel matching)
+    return tch.indexOf(x.cat)>=0;
   }).reduce(function(s,x){return s+x.amt;},0);
 }
 function rank(amt,catId){
@@ -209,8 +219,14 @@ function rank(amt,catId){
       // Does this new purchase match this tier's channels?
       var cat=S.cats.find(function(c){return c.id===catId;});
       var tch=tier.ch&&tier.ch.length?tier.ch:['all'];
+      // tier has 'all' → matches everything
       var matches=tch.indexOf('all')>=0;
+      // cat has 'all' in its ch → matches all tiers
+      if(!matches&&cat&&cat.ch.indexOf('all')>=0)matches=true;
+      // direct intersection
       if(!matches&&cat)matches=cat.ch.some(function(ch){return tch.indexOf(ch)>=0;});
+      // also check tier ch against cat id directly (custom channel = category name match)
+      if(!matches&&cat)matches=tch.indexOf(catId)>=0;
       if(!matches)return sum; // This tier doesn't apply to this purchase
       // Check milestone: must hit ms to earn anything
       var ms=tier.ms||0;

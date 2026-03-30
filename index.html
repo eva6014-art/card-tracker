@@ -188,13 +188,39 @@ function cstat(card){
   var ts=card.tiers.map(function(t){var x=calcT(t,sp,'all_overview');rw+=x.rw;return x;});
   return{sp:sp,rw:rw,ts:ts,r:r};
 }
+function tierSpent(card,tier,catId){
+  // How much has been spent THIS month on records that match this tier's channels?
+  // We need to count only spending that would apply to this tier
+  return S.recs.filter(function(x){
+    if(x.cid!==card.id||!x.dt.startsWith(S.month))return false;
+    var cat=S.cats.find(function(c){return c.id===x.cat;});
+    var tch=tier.ch&&tier.ch.length?tier.ch:['all'];
+    if(tch.indexOf('all')>=0)return true;
+    if(!cat)return false;
+    return cat.ch.some(function(ch){return tch.indexOf(ch)>=0;});
+  }).reduce(function(s,x){return s+x.amt;},0);
+}
 function rank(amt,catId){
   return S.cards.map(function(card){
     fix(card);
-    var spN=S.recs.filter(function(x){return x.cid===card.id&&x.dt.startsWith(S.month);}).reduce(function(s,x){return s+x.amt;},0);
-    var rN=card.tiers.reduce(function(s,t){return s+calcT(t,spN,catId).rw;},0);
-    var rW=card.tiers.reduce(function(s,t){return s+calcT(t,spN+amt,catId).rw;},0);
-    return{card:card,tr:Math.max(rW-rN,0)};
+    // For each tier: calculate incremental reward using only matching-channel spend
+    var tr=card.tiers.reduce(function(sum,tier){
+      var spTier=tierSpent(card,tier,catId);
+      // Does this new purchase match this tier's channels?
+      var cat=S.cats.find(function(c){return c.id===catId;});
+      var tch=tier.ch&&tier.ch.length?tier.ch:['all'];
+      var matches=tch.indexOf('all')>=0;
+      if(!matches&&cat)matches=cat.ch.some(function(ch){return tch.indexOf(ch)>=0;});
+      if(!matches)return sum; // This tier doesn't apply to this purchase
+      // Check milestone: must hit ms to earn anything
+      var ms=tier.ms||0;
+      if(ms>0&&spTier+amt<ms)return sum; // Won't hit milestone
+      // Calculate reward before and after this purchase
+      var rwBefore=tier.cap>0?Math.min(spTier*(tier.r/100),tier.cap):spTier*(tier.r/100);
+      var rwAfter=tier.cap>0?Math.min((spTier+amt)*(tier.r/100),tier.cap):(spTier+amt)*(tier.r/100);
+      return sum+Math.max(rwAfter-rwBefore,0);
+    },0);
+    return{card:card,tr:tr};
   }).sort(function(a,b){return b.tr-a.tr;});
 }
 var svt,svs='idle';

@@ -232,8 +232,10 @@ function chMatch(tier,catId,card){
     if(ch.indexOf('cus_')!==0)return false;
     var opt=allCh.find(function(o){return o.id===ch;});
     if(!opt)return false;
-    // The category name must match the custom channel label (exact or contains)
-    return cat.n===opt.l||cat.n.indexOf(opt.l)>=0||opt.l.indexOf(cat.n)>=0;
+    // Case-insensitive name match
+    var cn=cat.n.toLowerCase().replace(/\s+/g,'');
+    var ol=opt.l.toLowerCase().replace(/\s+/g,'');
+    return cn===ol||cn.indexOf(ol)>=0||ol.indexOf(cn)>=0;
   });
   return cusMatch;
 }

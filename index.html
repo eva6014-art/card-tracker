@@ -168,10 +168,10 @@ function getCh(card){
   ((card&&card.customCh)||[]).forEach(function(c){if(c&&c.id&&c.l&&!all.find(function(x){return x.id===c.id;}))all.push(c);});
   return all;
 }
-function calcT(tier,spent,catId){
+function calcT(tier,spent,catId,card){
   var cat=S.cats.find(function(c){return c.id===catId;});
   var tch=tier.ch&&tier.ch.length?tier.ch:['all'];
-  var ok=catId==='all_overview'||chMatch(tier,catId,null);
+  var ok=catId==='all_overview'||chMatch(tier,catId,card||null);
   if(!ok)return{rw:0,prog:0,ok:false,active:false,uncapped:false};
   var raw=spent*(tier.r/100),rw=tier.cap>0?Math.min(raw,tier.cap):raw;
   var ms=tier.ms||0,uncapped=tier.cap<=0;
@@ -210,7 +210,7 @@ function cstat(card){
   var period=getCardPeriod(card, S.month);
   var r=S.recs.filter(function(x){return x.cid===card.id&&inPeriod(x.dt,period);});
   var sp=r.reduce(function(s,x){return s+x.amt;},0),rw=0;
-  var ts=card.tiers.map(function(t){var x=calcT(t,sp,'all_overview');rw+=x.rw;return x;});
+  var ts=card.tiers.map(function(t){var x=calcT(t,sp,'all_overview',card);rw+=x.rw;return x;});
   return{sp:sp,rw:rw,ts:ts,r:r};
 }
 function chMatch(tier,catId,card){
@@ -415,7 +415,17 @@ function vHist(){
     var card=S.cards.find(function(c){return c.id===x.cid;});
     var cat=S.cats.find(function(c){return c.id===x.cat;});
     if(!card)return;fix(card);
-    var rw=card.tiers.reduce(function(s,t){return s+calcT(t,x.amt,x.cat).rw;},0);
+    var period=getCardPeriod(card,x.dt.slice(0,7));
+    var prevSpent=S.recs.filter(function(p){
+      return p.cid===card.id&&p.id!==x.id&&inPeriod(p.dt,period);
+    });
+    var rw=card.tiers.reduce(function(s,t){
+      if(!chMatch(t,x.cat,card))return s;
+      var spBefore=prevSpent.filter(function(p){return chMatch(t,p.cat,card);}).reduce(function(a,b){return a+b.amt;},0);
+      var rwBefore=t.cap>0?Math.min(spBefore*(t.r/100),t.cap):spBefore*(t.r/100);
+      var rwAfter=t.cap>0?Math.min((spBefore+x.amt)*(t.r/100),t.cap):(spBefore+x.amt)*(t.r/100);
+      return s+Math.max(rwAfter-rwBefore,0);
+    },0);
     h+='<div class="ri up" style="border-left-color:'+card.a+';animation-delay:'+i*.04+'s">';
     h+='<div style="flex:1"><div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">';
     h+='<span style="font-size:15px">'+(cat?cat.e:'📦')+'</span>';

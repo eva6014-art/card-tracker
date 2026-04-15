@@ -147,7 +147,7 @@ view:‘home’,month:nm(),form:{cid:’’,amt:’’,cat:‘dining’,note:’
 S.cats=S.cats.filter(function(c){
 return c&&c.id&&c.n&&c.e&&Array.isArray(c.ch)&&
 typeof c.e===‘string’&&c.e.length<=8&&  // emoji is short
-c.n.length<=20&&                          // name is short
+c.n.length<=50&&                          // name is short
 c.id.indexOf(’ ’)<0;                      // id has no spaces
 });
 if(!S.cats.length)S.cats=JSON.parse(JSON.stringify(DEFCATS));
@@ -316,7 +316,8 @@ el.textContent=m;el.style.background=tp===‘err’?C.d:tp===‘warn’?C.w:C.ok
 el.style.display=‘block’;clearTimeout(_tt);_tt=setTimeout(function(){el.style.display=‘none’;},2500);
 }
 function ring(prog,sz,col){
-var s=5,r=(sz-s)/2,ci=2*Math.PI*r,co=prog>=1?C.d:prog>.8?C.w:col,off=ci*(1-Math.min(prog,1));
+prog=isNaN(prog)?0:Math.max(0,Math.min(prog,1));
+var s=5,r=(sz-s)/2,ci=2*Math.PI*r,co=prog>=1?C.d:prog>.8?C.w:col,off=ci*(1-prog);
 return ‘<svg width="'+sz+'" height="'+sz+'" style="transform:rotate(-90deg)"><circle cx="'+sz/2+'" cy="'+sz/2+'" r="'+r+'" fill="none" stroke="'+C.bg+'" stroke-width="'+s+'"/><circle cx="'+sz/2+'" cy="'+sz/2+'" r="'+r+'" fill="none" stroke="'+co+'" stroke-width="'+s+'" stroke-dasharray="'+ci+'" stroke-dashoffset="'+off+'" stroke-linecap="round" style="transition:stroke-dashoffset .5s"/></svg>’;
 }
 function bdg(card,sm){
@@ -515,7 +516,7 @@ else if(S.view===‘hist’)el.innerHTML=vHist();
 else el.innerHTML=vMgmt();
 bindBtns();
 }catch(e){
-el.innerHTML=’<div style="padding:20px;color:red;font-size:12px">載入錯誤: ‘+e.message+’</div>’;
+el.innerHTML=’<div style="padding:20px;color:red;font-size:12px">載入錯誤: ‘+e.message+’ | ‘+JSON.stringify({cards:S.cards.length,cats:S.cats.length,view:S.view})+’</div>’;
 console.error(e);
 }
 }

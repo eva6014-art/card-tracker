@@ -324,22 +324,26 @@ function bdg(card,sm){
 return ‘<span class="bdg'+(sm?' bsm':'')+'" style="background:'+card.c+';color:'+card.a+';border-color:'+card.a+'55">’+card.n+’</span>’;
 }
 function rh(){
+try{
 var p=S.month.split(’-’);
-document.getElementById(‘mlbl’).textContent=p[0]+’ \u5e74 ‘+parseInt(p[1])+’ \u6708’;
+document.getElementById(‘mlbl’).textContent=p[0]+’ 年 ‘+parseInt(p[1])+’ 月’;
 var r=S.recs.filter(function(x){return x.dt.startsWith(S.month);});
 document.getElementById(‘hs’).textContent=M(r.reduce(function(s,x){return s+x.amt;},0));
-document.getElementById(‘hr’).textContent=M(S.cards.reduce(function(s,c){fix(c);return s+cstat(c).rw;},0));
+var totalRw=0;
+S.cards.forEach(function(card){try{fix(card);totalRw+=cstat(card).rw;}catch(e){console.error(‘cstat’,e);}});
+document.getElementById(‘hr’).textContent=M(totalRw);
 document.getElementById(‘hc’).textContent=r.length;
 document.getElementById(‘nm’).disabled=S.month>=nm();
 rsi();
+}catch(e){console.error(‘rh error:’,e);}
 }
-
 function vHome(){
 var r=S.recs.filter(function(x){return x.dt.startsWith(S.month);});
 if(!S.cards.length)return ‘<div class="empty"><div style="font-size:36px">💳</div><div style="font-weight:700;margin-top:8px">還沒有信用卡</div><button class="gbtn" data-act="sv" data-v="mgmt">前往新增</button></div>’;
 var h=’<div class="sec">信用卡回饋進度</div>’;
 S.cards.forEach(function(card,i){
-fix(card);var st=cstat(card);
+try{fix(card);}catch(e){return;}
+var st;try{st=cstat(card);}catch(e){console.error(‘cstat’,card.n,e);st={sp:0,rw:0,ts:card.tiers.map(function(){return{prog:0,ok:true,active:true,uncapped:true,rw:0};}),r:[]};}
 var tc=card.tiers.reduce(function(s,t){return s+(t.cap>0?t.cap:0);},0);
 var tp=tc>0?Math.min(st.rw/tc,1):0;
 var rds=+card.rd>=31?‘月底’:card.rd+‘號’;
@@ -479,7 +483,8 @@ h+=’<div class="sec" style="margin:0">我的信用卡</div>’;
 h+=’<button class="abtn" data-act="openCard" data-id="">＋ 新增</button></div>’;
 if(!S.cards.length)h+=’<div class="empty" style="padding:30px 20px"><div style="font-size:32px">💳</div><div style="margin-top:8px">還沒有信用卡</div></div>’;
 S.cards.forEach(function(card,i){
-fix(card);var st=cstat(card);var rds=+card.rd>=31?‘月底’:card.rd+‘號’;
+try{fix(card);}catch(e){return;}
+var st;try{st=cstat(card);}catch(e){console.error(‘cstat’,card.n,e);st={sp:0,rw:0,ts:card.tiers.map(function(){return{prog:0,ok:true,active:true,uncapped:true,rw:0};}),r:[]};}var rds=+card.rd>=31?‘月底’:card.rd+‘號’;
 h+=’<div class="card up" style="animation-delay:'+i*.06+'s">’;
 h+=’<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">’;
 h+=bdg(card);
@@ -516,7 +521,7 @@ else if(S.view===‘hist’)el.innerHTML=vHist();
 else el.innerHTML=vMgmt();
 bindBtns();
 }catch(e){
-el.innerHTML=’<div style="padding:20px;color:red;font-size:12px">載入錯誤: ‘+e.message+’ | ‘+JSON.stringify({cards:S.cards.length,cats:S.cats.length,view:S.view})+’</div>’;
+el.innerHTML=’<div style="padding:20px;color:red;font-size:12px">載入錯誤: ‘+(e&&e.message||‘未知錯誤’)+’</div>’;
 console.error(e);
 }
 }
